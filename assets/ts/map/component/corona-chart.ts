@@ -133,6 +133,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     handleChartResponse(): void
     {
+        alert('wtf');
         this.processResponseData();
         this.buildRangeConfig();
         this.buildDateConfig();
@@ -155,9 +156,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         });
     }
     fireRoamingEvents() {
-
-
-
         this._geoChart.dispatchAction({
             type: 'geoRoam',
             //component: mainType,
@@ -175,10 +173,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         //     originX: 0,
         //     originY: 0
         // });
-
-
-
-
     }
 
     updateZoomAndCenterOfGeoChart()
@@ -198,31 +192,32 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     }
 
     buildDateConfig() {
-        let sliderElement = $("#slider-range");
-        let dateTextField = $("#selected-date");
+
+        let dateLabel = $("#selected-date");
         this._selectedDate = this._lastDate;
+        let today = new Date().getTime() / 1000;
+        let plusSixtyDays = 60 * 86400 + today;
 
-        // @ts-ignore
-        sliderElement.slider({
-            range: false,
-            min: new Date('2020-01-22').getTime() / 1000,
-            max: new Date(this._lastDate).getTime() / 1000,
-            step: 86400,
-            values: [
-                new Date(this._selectedDate).getTime() / 1000,
-            ],
-            slide: (event, ui) => {
-                let date = new Date(ui.values[0] * 1000);
-                dateTextField.val(date.toDateString());
-                this.updateZoomAndCenterOfGeoChart();
-                this._selectedDate = this.formatDate(date);
-                this._geoChart.setOption(this.getGeoChartOptions(), true);
-                this.fireRoamingEvents();
+        let rangeControl = $('input#slider-date-range');
+        let min = new Date('2020-01-22').getTime() / 1000;
+        let max = new Date(plusSixtyDays).getTime() / 1000;
 
-            }
+        console.log(min);
+        console.log(max);
+
+        rangeControl.attr('min', min);
+        rangeControl.attr('max', max);
+        rangeControl.on("input change", (event) => {
+            let val = $(event.target).val();
+            let date = new Date(parseInt(val.toString()) * 1000);
+            dateLabel.text(date.toDateString());
+            this.updateZoomAndCenterOfGeoChart();
+            this._selectedDate = this.formatDate(date);
+            this._geoChart.setOption(this.getGeoChartOptions(), true);
+            this.fireRoamingEvents();
         });
-        // @ts-ignore
-        dateTextField.val((new Date(sliderElement.slider("values", 0) * 1000).toDateString()));
+
+        dateLabel.text(new Date('2020-01-22').toDateString());
     }
 
     buildRangeConfig()
