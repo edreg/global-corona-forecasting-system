@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta charset="UTF-8">
+        <title>{% block title %}Covid-19 stats{% endblock %}</title>
+        <meta name="robots" content="noindex">
+        <meta name="description" content="Analysis tool for COVID-19">
+        <meta name="keywords" content="covid-19 corona forecast">
+        <meta name="msapplication-config" content="none"/>
+        <meta name="viewport" content="width=device-width">
+        <link rel="shortcut icon" type="image/x-icon" href="{{- absolute_url(asset('../favicon.ico')) -}}">
+        {%- block head -%}
+        <meta charset="UTF-8">
+            {%- block stylesheet_header -%}
+                <link rel="stylesheet" type="text/css" href="{{- absolute_url(asset('build/dist/jquery-ui-dist/jquery-ui.css')) -}}"/>
+                <link rel="stylesheet" type="text/css" href="{{- absolute_url(asset('build/dist/bootstrap/dist/css/bootstrap.css')) -}}" media="all"/>
+                {{ encore_entry_link_tags('app') }}
+            {%- endblock -%}
+
+            {%- block javascript_header -%}
+                {{ encore_entry_script_tags('app') }}
+            {%- endblock -%}
+        {%- endblock -%}
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+        {% block javascripts_body %}
+        {% endblock %}
+    </body>
+</html>

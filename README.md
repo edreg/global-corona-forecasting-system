@@ -1,2 +1,5 @@
-# covid-19
-Analysis tool for COVID-19
+# skeleton
+A symfony based skeleton
+
+run db/init
+

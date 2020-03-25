@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CoronaStats index{% endblock %}
+
+{% block body %}
+    <h1>CoronaStats index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Country</th>
+                <th>AmountHealed</th>
+                <th>AmountDeath</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for corona_stat in corona_stats %}
+            <tr>
+                <td>{{ corona_stat.id }}</td>
+                <td>{{ corona_stat.amount }}</td>
+                <td>{{ corona_stat.date ? corona_stat.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ corona_stat.country.name }}</td>
+                <td>{{ corona_stat.amountHealed }}</td>
+                <td>{{ corona_stat.amountDeath }}</td>
+                <td>
+                    <a href="{{ path('corona_stats_show', {'id': corona_stat.id}) }}">show</a>
+                    <a href="{{ path('corona_stats_edit', {'id': corona_stat.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('corona_stats_new') }}">Create new</a>
+{% endblock %}

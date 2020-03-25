@@ -1,0 +1,32 @@
+body {
+    background-color: ghostwhite;
+    div.content-body {
+        width: 95%;
+        padding: 1em;
+
+        ul.nav-tabs {
+            //height: 10em;
+            li.nav-item {
+                width: 10%;
+            }
+        }
+    }
+}
+
+.hide {
+    display: none;
+}
+
+table { border-collapse: collapse; width: 100%; }
+th, td { background: #fff; padding: 8px 16px; }
+
+
+.tableFixHead {
+    overflow: auto;
+    height: 100px;
+}
+
+.tableFixHead thead th {
+    position: sticky;
+    top: 0;
+}

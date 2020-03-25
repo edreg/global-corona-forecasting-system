@@ -1,0 +1,57 @@
+security:
+    role_hierarchy:
+        #user
+        ROLE_USER: ROLE_USER
+        ROLE_ADMIN: [ROLE_ADMIN, ROLE_USER]
+    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    encoders:
+        App\Entity\User:
+            algorithm: 'auto'
+        Symfony\Component\Security\Core\User\User: plaintext
+        # Symfony\Component\Security\Core\User\User: auto ## for in_memory users
+    providers:
+        chain_provider:
+            chain:
+                providers: [in_config, users]
+        users:
+            entity:
+                class: App\Entity\User
+                property: username
+        in_config:
+            memory:
+                users:              #: 'admin' or use "php bin/console security:encode-password" to generate
+                    admin: { password: '%admin_password%', roles: ROLE_ADMIN }
+    firewalls:
+        main:
+            anonymous: lazy
+            provider: chain_provider
+            guard:
+                authenticators:
+                    - App\Security\LoginFormAuthenticator
+            logout:
+                path: logout
+                # where to redirect after logout
+                # target: app_any_route
+
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#firewalls-authentication
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/map/query, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/stats, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+
+#        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/city, roles: ROLE_ADMIN }
+        - { path: ^/continent, roles: ROLE_ADMIN }
+        - { path: ^/corona, roles: ROLE_ADMIN }
+        - { path: ^/country, roles: ROLE_ADMIN }
+        - { path: ^/role, roles: ROLE_ADMIN }
+        - { path: ^/user, roles: ROLE_ADMIN }
+        - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        # - { path: ^/profile, roles: ROLE_USER }

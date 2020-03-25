@@ -1,0 +1,209 @@
+{% extends ['index.html.twig', '@KnpPaginator/Pagination/twitter_bootstrap_v4_pagination.html.twig'] %}
+
+{%- block stylesheet_header -%}
+ {{ parent() }}
+ {{ encore_entry_link_tags('map') }}
+{%- endblock -%}
+
+{%- block javascript_header -%}
+{%- endblock -%}
+
+{% block content %}
+    {% block navigation %}{% endblock %}
+    <div id="{{ configurationId }}" class="hide">{{ settings }}</div>
+
+    <div role="tabpanel">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="nav-item">
+                <a href="#tabs-geo" class="nav-link" aria-controls="tabs-lines" role="tab" data-toggle="tab">{{ 'Geo'|trans }}</a>
+            </li>
+            <li role="presentation" class="nav-item">
+                <a href="#tabs-chart-per-country" class="nav-link" aria-controls="tabs-mode" role="tab" data-toggle="tab">{{ 'Chart'|trans }}</a>
+            </li>
+            <li role="presentation" class="nav-item">
+                <a href="#tabs-table" class="nav-link active" aria-controls="tabs-mode" role="tab" data-toggle="tab">{{ 'Table'|trans }}</a>
+            </li>
+            <li role="presentation" class="nav-item">
+                <a href="#tabs-info" class="nav-link" aria-controls="tabs-mode" role="tab" data-toggle="tab">{{ 'Info'|trans }}</a>
+            </li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane" id="tabs-geo">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="row">
+                            <label class="col-md-4" for="selected-date"></label>
+                            <input class="col-md-8" type="text" id="selected-date" style="border: 0; color: #f6931f; font-weight: bold;" size="100"/>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="slider-range"></div>
+                            </div>
+                        </div>
+
+                        <div id="slider-range"></div>
+                    </div>
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4"></div>
+                </div>
+                <div id="corona-geo-chart-div" style="width: 100em; height: 50em;"></div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="tabs-info">
+                <div id="information" class="row">
+                    <div class="col-md-8">
+                        <p>
+                            Visit the Johns Hopkins Coronavirus Resource Center where experts help to advance understanding of the virus, inform the public, and brief policymakers in order to guide a response, improve care, and save lives.
+                        </p>
+                        <p>
+                            This website processes data that is subject to the Copyright 2020 of Johns Hopkins University. The data and all rights thereto are made available to the public for educational and academic research purposes only.
+                        </p>
+                        <p>
+                            The Website relies upon publicly available data from multiple sources, that do not always agree.
+                            The names of locations correspond with the official designations used by the U.S. State Department, including for Taiwan.
+                            The Johns Hopkins University hereby disclaims any and all representations and warranties with respect to the Website, including accuracy, fitness for use, and merchantability.
+                            Reliance on the Website for medical guidance or use of the Website in commerce is strictly prohibited.
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                    </div>
+
+                </div>
+                <div id="tools" class="row">
+                    <div class="col-md-8">
+                        <h3>Tools used</h3>
+                        <p>
+                            Symfony, Doctrine, Webpack, Apache Echarts, ecomfe/echarts-stat, bootstrap
+                        </p>
+
+
+                    </div>
+                    <div class="col-md-4">
+                    </div>
+
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="tabs-chart-per-country">
+                <div class="row">
+                    <div id="country-selection-wrapper" class="col-md-4">
+                        <div class="row text-center">
+                            <label class="col-md-12" for="country-selection">{{ 'Select a country'|trans }}: </label>
+                        </div>
+                        <div class="row text-center">
+                            <select id="country-selection" multiple="" class="selectpicker col-md-12" data-live-search="true"></select>
+                        </div>
+                    </div>
+                    <div class="text-center col-md-4">
+                        <div class="row">
+                            <label class="col-md-12" for="polynomial-coefficients-range-control">{{ '# of polynomial regression coefficients'|trans }}</label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input id="polynomial-coefficients-range-control" class="border-0" type="range" min="3" max="7"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row">
+                            <label class="col-md-12" for="forecast-days-range-control">{{ 'Forecast in days'|trans }}</label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input id="forecast-days-range-control" class="border-0" type="range" min="2" max="60"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="corona-chart-per-country-div" style="width: 100em; height: 50em;"></div>
+            </div>
+
+            <div role="tabpanel" class="tab-pane active" id="tabs-table">
+                <div class="row">
+                    <div class="col-md-3">
+                        <form>
+                            <div class="input-group date" data-provide="datepicker">
+                                <input id="stats-table-datepicker" type="text" name="date" {#data-date-format="yyyy-mm-dd"#} class="form-control"
+                                       value="{{ dateValue }}" placeholder="pick a date...">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-outline-secondary">
+                                        <span class="fa fa-search">{{ 'Send'|trans }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-9"></div>
+                </div>
+
+                <table class="table tableFixHead">
+                    <thead>
+                        <tr>
+                            {#<th{% if pagination.isSorted('coronaStats.country.name') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Country', 'coronaStats.country.name') }}</th>#}
+                            <th>{{ 'Country' }}</th>
+                            <th{% if pagination.isSorted('coronaStats.amount') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Infections', 'coronaStats.amount') }}</th>
+                            <th>{{ 'New infections' }}</th>
+                            <th>{{ 'Doubling rate of infections in days' }}</th>
+                            <th{% if pagination.isSorted('coronaStats.amountHealed') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Healed', 'coronaStats.amountHealed') }}</th>
+                            <th>{{ 'New healed' }}</th>
+                            <th>{{ 'Doubling rate of healed in days' }}</th>
+                            <th{% if pagination.isSorted('coronaStats.amountDeath') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Death', 'coronaStats.amountDeath') }}</th>
+                            <th>{{ 'New deaths' }}</th>
+                            <th>{{ 'Doubling rate of deaths in days' }}</th>
+                            <th>{{ 'Infections by 1 mio inhabitants' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for coronaStats in pagination %}
+                        <tr {% if loop.index is odd %}class="color"{% endif %}>
+                            {#                            <td>{{ coronaStats.id }}</td>#}
+                            <td>{{ coronaStats.country.name }}</td>
+                            <td>{{ coronaStats.amount|number_format(0, '.', ',') }}</td>
+                            <td>{{ (coronaStats.amount - coronaStats.getAmountTheDayBefore)|number_format(0, '.', ',') }}</td>
+                            <td>{{ coronaStats.getDoublingInfectionRateInDays|number_format(2, '.', ',') }}</td>
+                            <td>{{ coronaStats.amountHealed|number_format(0, '.', ',') }}</td>
+                            <td>{{ (coronaStats.amountHealed - coronaStats.getAmountHealedTheDayBefore)|number_format(0, '.', ',') }}</td>
+                            <td>{{ coronaStats.getDoublingHealedRateInDays|number_format(2, '.', ',') }}</td>
+                            <td>{{ coronaStats.amountDeath|number_format(0, '.', ',') }}</td>
+                            <td>{{ (coronaStats.amountDeath - coronaStats.getAmountDeathTheDayBefore)|number_format(0, '.', ',') }}</td>
+                            <td>{{ coronaStats.getDoublingDeathRateInDays|number_format(2, '.', ',') }}</td>
+                            <td>{{ (coronaStats.amount / ((coronaStats.country.population + 1) / 1000000))|number_format(0, '.', ',') }}</td>
+
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+                {# display navigation #}
+                <div class="navigation">
+                    {{ knp_pagination_render(pagination) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="customToolBoxModal" tabindex="-1" role="dialog" aria-labelledby="customToolBoxModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title" id="customToolBoxModalLabel">{{ 'Change color'|trans }}</span>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ 'Close'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{%- block javascripts_body -%}
+    {{ encore_entry_script_tags('map') }}
+{%- endblock -%}
+

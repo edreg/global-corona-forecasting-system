@@ -1,0 +1,2 @@
+php bin/console make:entity
+php bin/console make:crud BlogPost

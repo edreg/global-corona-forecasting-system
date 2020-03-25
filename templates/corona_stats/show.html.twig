@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CoronaStats{% endblock %}
+
+{% block body %}
+    <h1>CoronaStats</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ corona_stat.id }}</td>
+            </tr>
+            <tr>
+                <th>Amount</th>
+                <td>{{ corona_stat.amount }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ corona_stat.date ? corona_stat.date|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>AmountHealed</th>
+                <td>{{ corona_stat.amountHealed }}</td>
+            </tr>
+            <tr>
+                <th>AmountDeath</th>
+                <td>{{ corona_stat.amountDeath }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('corona_stats_index') }}">back to list</a>
+
+    <a href="{{ path('corona_stats_edit', {'id': corona_stat.id}) }}">edit</a>
+
+    {{ include('corona_stats/_delete_form.html.twig') }}
+{% endblock %}

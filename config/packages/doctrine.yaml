@@ -1,0 +1,41 @@
+doctrine:
+    dbal:
+        #driver: 'pdo_sqlite'
+        #path: '%kernel.project_dir%/var/app.db'
+
+#        driver: 'pdo_mysql'
+#        server_version: '5.7'
+#        charset: utf8mb4
+#        url: 'mysqli://root@localhost:3306/skeleton_ed'
+        #url: 'mysql://db_user:db_password@127.0.0.1:3306/db_name'
+        #url: 'sqlite:///%kernel.project_dir%/var/app.db'
+        default_connection: default
+        connections:
+            default:
+                # configure these for your database server
+                url: '%database_connection%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: utf8mb4
+    orm:
+        default_entity_manager: default
+        entity_managers:
+            default:
+                connection: default
+                mappings:
+                    App:
+                        is_bundle: false
+                        type: annotation
+                        dir: '%kernel.project_dir%/src/Entity'
+                        prefix: 'App\Entity'
+                        alias: App
+#        auto_generate_proxy_classes: true
+#        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+#        auto_mapping: true
+#        mappings:
+#            App:
+#                is_bundle: false
+#                type: 'yml'
+#                dir: '%kernel.project_dir%/config/mappings/doctrine/App'
+#                prefix: 'App\Entity'
+#                alias: App

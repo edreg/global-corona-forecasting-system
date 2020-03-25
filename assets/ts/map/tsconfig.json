@@ -1,0 +1,24 @@
+{
+  "files": [
+    "./map.ts"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "es6"
+    ],
+    "removeComments": true,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "typeRoots": [
+      "../../../node_modules/@types"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

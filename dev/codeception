@@ -1,0 +1,3 @@
+php vendor/bin/codecept g:cest acceptance First
+php vendor/bin/codecept
+php vendor/bin/codecept bootstrap

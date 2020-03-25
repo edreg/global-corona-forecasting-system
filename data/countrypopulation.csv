@@ -1,0 +1,227 @@
+name;continent;population;iso2
+Afghanistan;Asia;38041754;AF
+Albania;Europe;2880917;AL
+Algeria;Africa;43053054;DZ
+American Samoa;Oceania;55312;AS
+Andorra;Europe;77142;AD
+Angola;Africa;31825295;AO
+Anguilla;Americas;14869;AI
+Antigua and Barbuda;Americas;97118;AG
+Argentina;Americas;44780677;AR
+Armenia;Asia;2957731;AM
+Aruba;Americas;106314;AW
+Australia;Oceania;25203198;AU
+Austria;Europe;8955102;AT
+Azerbaijan;Asia;10047718;AZ
+Bahamas;Americas;389482;BS
+Bahrain;Asia;1641172;BH
+Bangladesh;Asia;163046161;BD
+Barbados;Americas;287025;BB
+Belarus;Europe;9452411;BY
+Belgium;Europe;11539328;BE
+Belize;Americas;390353;BZ
+Benin;Africa;11801151;BJ
+Bermuda;Americas;62506;BM
+Bhutan;Asia;763092;BT
+Bolivia;Americas;11513100;BO
+Bosnia and Herzegovina;Europe;3301000;BA
+Botswana;Africa;2303697;BW
+Brazil;Americas;211049527;BR
+Brunei;Asia;433285;BN
+Bulgaria;Europe;7000119;BG
+Burkina Faso;Africa;20321378;BF
+Burundi;Africa;10864245;BI
+Cambodia;Asia;16486542;KH
+Cameroon;Africa;25876380;CM
+Canada;Americas;37411047;CA
+Cayman Islands;Americas;64948;KY
+Central African Republic;Africa;4745185;CF
+Chad;Africa;15946876;TD
+Chile;Americas;18952038;CL
+China;Asia;1433783686;CN
+Colombia;Americas;50339443;CO
+Comoros;Africa;850886;KM
+Congo;Africa;5380508;CG
+Cook Islands;Oceania;17548;CK
+Costa Rica;Americas;5047561;CR
+Croatia;Europe;4130304;HR
+Cuba;Americas;11333483;CU
+Cyprus;Asia;1179551;CY
+Czech Republic;Europe;10689209;CZ
+Denmark;Europe;5771876;DK
+Djibouti;Africa;97356;DJ
+Dominica;Americas;71808;DM
+Dominican Republic;Americas;10738958;DO
+DR Congo;Africa;86790567;CD
+Ecuador;Americas;17373662;EC
+Egypt;Africa;100388073;EG
+El Salvador;Americas;6453553;SV
+Equatorial Guinea;Africa;1355986;GQ
+Eritrea;Africa;3497117;ER
+Estonia;Europe;1325648;EE
+Eswatini;Africa;1148130;SZ
+Ethiopia;Africa;112078730;ET
+Falkland Islands;Americas;3377;FK
+Faroe Islands;Europe;48678;FO
+Fiji;Oceania;889953;FJ
+Finland;Europe;5532156;FI
+France;Europe;65129728;FR
+French Guiana;Americas;282731;GF
+French Polynesia;Oceania;279287;PF
+Gabon;Africa;2172579;GA
+Gambia;Africa;2347706;GM
+Georgia;Asia;3996765;GE
+Germany;Europe;83517045;DE
+Ghana;Africa;28833629;GH
+Gibraltar;Europe;33701;GI
+Greece;Europe;10473455;GR
+Greenland;Americas;56672;GL
+Grenada;Americas;112003;GD
+Guadeloupe;Americas;447905;GP
+Guam;Oceania;167294;GU
+Guatemala;Americas;17581472;GT
+Guernsey and Jersey;Europe;172259;GG
+Guinea;Africa;12771246;GN
+Guinea-Bissau;Africa;1920922;GW
+Guyana;Americas;782766;GY
+Haiti;Americas;11263770;HT
+Honduras;Americas;9746117;HN
+Hong Kong;Asia;7436154;HK
+Hungary;Europe;9684679;HU
+Iceland;Europe;339031;IS
+India;Asia;1366417754;IN
+Indonesia;Asia;270625568;ID
+Iran;Asia;82913906;IR
+Iraq;Asia;39309783;IQ
+Ireland;Europe;4882495;IE
+Isle of Man;Europe;84584;IM
+Israel;Asia;8519377;IL
+Italy;Europe;60550075;IT
+Ivory Coast;Africa;25716544;CI
+Jamaica;Americas;2948279;JM
+Japan;Asia;126860301;JP
+Jordan;Asia;10101694;JO
+Kazakhstan;Asia;18551427;KZ
+Kenya;Africa;52573973;KE
+Kiribati;Oceania;117606;KI
+Kuwait;Asia;4207083;KW
+Kyrgyzstan;Asia;6415850;KG
+Laos;Asia;7169455;LA
+Latvia;Europe;1906743;LV
+Lebanon;Asia;6855713;LB
+Lesotho;Africa;2125268;LS
+Liberia;Africa;4937374;LR
+Libya;Africa;6777452;LY
+Liechtenstein;Europe;38019;LI
+Lithuania;Europe;2759627;LT
+Luxembourg;Europe;615729;LU
+Macau;Asia;640445;MO
+Madagascar;Africa;26969307;MG
+Malawi;Africa;18628747;MW
+Malaysia;Asia;31949777;MY
+Maldives;Asia;530953;MV
+Mali;Africa;19658031;ML
+Malta;Europe;440372;MT
+Marshall Islands;Oceania;58791;MH
+Martinique;Americas;375554;MQ
+Mauritania;Africa;4525696;MR
+Mauritius;Africa;1198575;MU
+Mayotte;Africa;26615;YT
+Mexico;Americas;127575529;MX
+Moldova;Europe;4043263;MD
+Monaco;Europe;38964;MC
+Mongolia;Asia;3225167;MN
+Montenegro;Europe;627987;ME
+Montserrat;Americas;4989;MS
+Morocco;Africa;36471769;MA
+Mozambique;Africa;30366036;MZ
+Myanmar;Asia;54045420;MM
+Namibia;Africa;2494530;NA
+Nauru;Oceania;10756;NR
+Nepal;Asia;28608710;NP
+Netherlands;Europe;17097130;NL
+New Caledonia;Oceania;28275;NC
+New Zealand;Oceania;4783063;NZ
+Nicaragua;Americas;6545502;NI
+Niger;Africa;23310715;NE
+Nigeria;Africa;200963599;NG
+Niue;Oceania;1615;NU
+North Korea;Asia;25666161;KP
+North Macedonia;Europe;2083459;MK
+Northern Mariana Islands;Oceania;56188;MP
+Norway;Europe;5378857;NO
+Oman;Asia;4974986;OM
+Pakistan;Asia;216565318;PK
+Palau;Oceania;18008;PW
+Palestine;Asia;4981420;PS
+Panama;Americas;4246439;PA
+Papua New Guinea;Oceania;8776109;PG
+Paraguay;Americas;7044636;PY
+Peru;Americas;32510453;PE
+Philippines;Asia;108116615;PH
+Poland;Europe;37887768;PL
+Portugal;Europe;10226187;PT
+Puerto Rico;Americas;2933408;PR
+Qatar;Asia;2832067;QA
+Reunion;Africa;888927;RE
+Romania;Europe;19364557;RO
+Russia;Europe;145872256;RU
+Rwanda;Africa;12626950;RW
+Saint Helena Ascension and Tristan da Cunha;Africa;6059;SH
+Saint Kitts and Nevis;Americas;52823;KN
+Saint Lucia;Americas;18279;LC
+Saint Pierre and Miquelon;Americas;5822;PM
+Saint Vincent and the Grenadines;Americas;110589;VC
+Samoa;Oceania;197097;WS
+San Marino;Europe;3386;SM
+Sao Tomo and Principe;Africa;215056;ST
+Saudi Arabia;Asia;34268528;SA
+Senegal;Africa;16296364;SN
+Serbia;Europe;8772235;RS
+Seychelles;Africa;97739;SC
+Sierra Leone;Africa;7813215;SL
+Singapore;Asia;5804337;SG
+Sint Maarten;Americas;42388;SX
+Slovakia;Europe;5457013;SK
+Slovenia;Europe;2078654;SI
+Solomon Islands;Oceania;669823;SB
+Somalia;Africa;15442905;SO
+South Africa;Africa;58558270;ZA
+South Korea;Asia;51225308;KR
+South Sudan;Africa;11062113;SS
+Spain;Europe;46736776;ES
+Sri Lanka;Asia;21323733;LK
+Sudan;Africa;42813238;SD
+Suriname;Americas;581372;SR
+Sweden;Europe;10036379;SE
+Switzerland;Europe;8591365;CH
+Syria;Asia;17070135;SY
+Taiwan;Asia;23773876;TW
+Tajikistan;Asia;9321018;TJ
+Tanzania;Africa;58005463;TZ
+Thailand;Asia;69037513;TH
+Togo;Africa;8082366;TG
+Tokelau;Oceania;134;TK
+Tonga;Oceania;11094;TO
+Trinidad and Tobago;Americas;1394973;TT
+Tunisia;Africa;11694719;TN
+Turkey;Asia;83429615;TR
+Turkmenistan;Asia;5942089;TM
+Turks and Caicos Islands;Americas;38191;TC
+Tuvalu;Oceania;11646;TV
+Uganda;Africa;44269594;UG
+Ukraine;Europe;43993638;UA
+United Arab Emirates;Asia;9770529;AE
+United Kingdom;Europe;67530172;GB
+United States;Americas;329064917;US
+Uruguay;Americas;3461734;UY
+Uzbekistan;Asia;32981716;UZ
+Vanuatu;Oceania;299882;VU
+Vatican City;Europe;799;VA
+Venezuela;Americas;28515829;VE
+Vietnam;Asia;96462106;VN
+Wallis and Futuna;Oceania;11432;WF
+Western Sahara;Africa;582463;EH
+Yemen;Asia;29161922;YE
+Zambia;Africa;17861030;ZM
+Zimbabwe;Africa;14645468;ZW

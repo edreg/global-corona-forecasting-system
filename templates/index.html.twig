@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home!{% endblock %}
+
+{% block body %}
+    {% block navigation %}
+        <div>
+            <ul>
+                <li><a href="{{ url('user_index') }}">{{ 'User index'|trans }}</a></li>
+                <li><a href="{{ url('role_index') }}">{{ 'Role index'|trans }}</a></li>
+                <li><a href="{{ url('stats') }}">{{ 'Query map'|trans }}</a></li>
+                <li><a href="{{ url('logout') }}">{{ 'Logout'|trans }}</a></li>
+            </ul>
+        </div>
+    {% endblock %}
+    <div class="content-body">
+        {% block content %}
+            <div>
+                <h1>Hello</h1>
+            </div>
+        {% endblock %}
+    </div>
+    {% block footer %}
+        <div></div>
+    {% endblock %}
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "outDir": "./public/build/components/",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es5",
+    "jsx": "react",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "noEmitHelpers": true,
+    "strictNullChecks": false,
+    "baseUrl": "./assets/ts",
+    "paths": {},
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "lib": [
+      "dom",
+      "es6"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
