@@ -1,9 +1,10 @@
 # covid-19
 A symfony based covid-19 analysis tool
 
-This tool use the following repository as data source
-https://github.com/CSSEGISandData/COVID-19
+This tool uses the following repository as data source: https://github.com/CSSEGISandData/COVID-19
+
 Please have a closer look at the this repository for limitations of the further use of this data!
+
 _"This GitHub repo and its contents herein, including all data, mapping, and analysis, copyright 2020 Johns Hopkins University, all rights reserved, is provided to the public strictly for educational and academic research purposes."_
 
 //#COVID2019
