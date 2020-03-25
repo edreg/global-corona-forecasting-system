@@ -1,12 +1,12 @@
 {
-  "name": "edreg/skeleton",
+  "name": "edreg/covid-19",
   "type": "project",
   "prefer-stable": true,
   "license": "MIT",
-  "description": "A project based on symfony and doctrine",
+  "description": "A symfony based covid-19 analysis tool",
   "minimum-stability": "dev",
   "require": {
-    "php": "^7.2.5",
+    "php": "^7.2",
     "ext-ctype": "*",
     "ext-dom": "*",
     "ext-iconv": "*",
