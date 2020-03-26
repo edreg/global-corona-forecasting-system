@@ -517,13 +517,13 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             legend: {
                 top: '2%',
                 data: legendData,
-                inactiveColor: '#dadada',
+                inactiveColor: '#3e4257',
                 selectedMode: 'single',
                 selected: this._selectedGeoChartLegend,
                 left: '0%',
                 orient: 'vertical',
                 textStyle: {
-                    color: '#eee'
+                    color: '#571117'
                 },
                 z: 500
             },
@@ -571,7 +571,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 top: 0,
                 bottom: 0,
                 borderColor: 'transparent',
-                backgroundColor: '#404a59',
+                backgroundColor: '#9dbfd8',
                 z: 5
             }],
             geo: {
@@ -588,7 +588,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 itemStyle: {
                     borderWidth: 0.2,
                     borderColor: '#2b3543',
-                    areaColor: '#a6a6a6',
+                    areaColor: '#ebebeb',
                 },
                 left: this._geoMapLeft,
                 top: this._geoMapTop,

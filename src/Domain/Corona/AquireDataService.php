@@ -220,13 +220,18 @@ class AquireDataService
         $countryEntityList = $this->countryRepository->findAll();
         $countryList = [];
         $infectedWorld = new CountryModel('World', 0, 0.0, 0.0, 0);
+        $countrySkipList = [
+            'Cruise Ship' => true,
+            'Diamond Princess' => true,
+        ];
 
         /** @var Country $country */
         foreach ($countryEntityList as $country)
         {
             $id = $country->getId();
             $name = $country->getName();
-            if ($name === 'Cruise Ship')
+
+            if (isset($countrySkipList[$name]))
             {
                 continue;
             }
@@ -248,7 +253,7 @@ class AquireDataService
             $date = $stats->getDate()->format('Y-m-d');
             $countryId = $stats->getCountry()->getId();
             $name = $stats->getCountry()->getName();
-            if ($name === 'Cruise Ship')
+            if (isset($countrySkipList[$name]))
             {
                 continue;
             }
