@@ -4,6 +4,12 @@
   "prefer-stable": true,
   "license": "MIT",
   "description": "A symfony based covid-19 analysis tool",
+  "authors": [
+    {
+      "name": "Gerald Lippert",
+      "email": "ger.lippert@gmail.com"
+    }
+  ],
   "minimum-stability": "dev",
   "require": {
     "php": "^7.2",

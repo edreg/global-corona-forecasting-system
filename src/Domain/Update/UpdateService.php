@@ -29,7 +29,6 @@ class UpdateService
     {
         $copyHtaccessCommand = 'cd ' . $this->projectDirectory . 'public && cp .htaccess.prod .htaccess';
         $copyEnvCommand = 'cd ' . $this->projectDirectory . ' && cp .env.prod .env';
-//cd /mnt/d/Projects/www/skeleton/ && git pull && cd /mnt/d/Projects/www/skeleton/public && cp .htaccess.prod .htaccess && cd /mnt/d/Projects/www/skeleton/ && cp .env.prod .env && yarn encore prod && composer update
         $process = Process::fromShellCommandline(
             'cd ' . $this->projectDirectory . ' && git pull && ' . $copyHtaccessCommand . ' && '
             . $copyEnvCommand . ' && composer update && yarn encore prod'

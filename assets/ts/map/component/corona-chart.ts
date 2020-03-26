@@ -102,12 +102,12 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         this._countryById = {};
         this._selectedCountryIdList = [0];
         this._geoCoordMap = {};
-        this._geoMapCenter = [10, 59];
+        this._geoMapCenter = [11, 13];//[10, 59];
         this._geoMapLeft = '0%';
-        this._geoMapTop = '15%';
-        this._geoMapBottom = '15%';
+        this._geoMapTop = '0%';
+        this._geoMapBottom = '0%';
         this._geoMapRight = '0%';
-        this._geoMapZoom = 0;
+        this._geoMapZoom = 1;
         //this._geoChartApi = new ExtensionAPI(this._geoChart);
         this._countrySelection = $('select#country-selection');
         // @ts-ignore
@@ -133,7 +133,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     handleChartResponse(): void
     {
-        alert('wtf');
+
         this.processResponseData();
         this.buildRangeConfig();
         this.buildDateConfig();
@@ -149,8 +149,9 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             this._selectedChartLegend = params.selected;
         });
         this._geoChart.on('georoam', (params) => {
-            console.log('georoam');
-            console.log(params);
+             console.log('georoam');
+             console.log(this._geoChart.getOption().geo);
+            // console.log(params);
             //this._geoChart.getOption().geo.roam = true;
             //this.updateZoomAndCenterOfGeoChart();
         });
@@ -194,30 +195,41 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     buildDateConfig() {
 
         let dateLabel = $("#selected-date");
+        let labelColor = dateLabel.css('color');
         this._selectedDate = this._lastDate;
-        let today = new Date().getTime() / 1000;
+        let today = Math.floor(new Date().getTime() / 1000);
         let plusSixtyDays = 60 * 86400 + today;
 
         let rangeControl = $('input#slider-date-range');
         let min = new Date('2020-01-22').getTime() / 1000;
-        let max = new Date(plusSixtyDays).getTime() / 1000;
-
-        console.log(min);
-        console.log(max);
+        let max = new Date(plusSixtyDays).getTime();
 
         rangeControl.attr('min', min);
         rangeControl.attr('max', max);
+        rangeControl.attr('step', 86400);
+        rangeControl.val(today - 86400);
+        dateLabel.text(new Date((today - 86400) * 1000).toDateString());
+
         rangeControl.on("input change", (event) => {
             let val = $(event.target).val();
-            let date = new Date(parseInt(val.toString()) * 1000);
-            dateLabel.text(date.toDateString());
-            this.updateZoomAndCenterOfGeoChart();
+            let timeStamp = parseInt(val.toString());
+            let date = new Date(timeStamp * 1000);
+            let label = date.toDateString();
+            let tmpLabelColor = labelColor;
+            if (timeStamp > today - 86400)
+            {
+                tmpLabelColor = '#9e1a22';
+                label += ' forecast!'
+            }
+            dateLabel.text(label);
+            dateLabel.css('color', tmpLabelColor);
+            //this.updateZoomAndCenterOfGeoChart();
             this._selectedDate = this.formatDate(date);
             this._geoChart.setOption(this.getGeoChartOptions(), true);
             this.fireRoamingEvents();
         });
 
-        dateLabel.text(new Date('2020-01-22').toDateString());
+
     }
 
     buildRangeConfig()
@@ -1068,6 +1080,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             .replace('x^10', '*(x*x*x*x*x*x*x*x*x*x)')
         ;
         let lastDate = this._lastDate;
+        let lastFormulaResult = 0;
 
         for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this._forecastInDays); i++) {
             let tmpDate = new Date(lastDate);
@@ -1079,6 +1092,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             this._xAxisAssignment[lastDate] = i;
             this._regressionDateList[i] = lastDate;
 
+            lastFormulaResult = formulaResult;
             chartModel.data.push(Math.floor(formulaResult));
         }
     }

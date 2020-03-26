@@ -25,7 +25,8 @@ I developed this app with:
 * check if there is a fitting **public/.htacces.ENV** for your needs or create a fitting **public/.htacces**
 
 #### finally run in project directory shell
-* _composer install_ or _composer update_
+* _composer install_ or _composer update_ for backend components
+* _yarn install_ for front end components
 * _yarn encore prod_ or _yarn encore dev_ corresponding to your needs
 * pray that the app is running now
 

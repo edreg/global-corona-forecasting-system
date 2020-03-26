@@ -2,8 +2,8 @@
   "name": "skeleton",
   "version": "1.0.0",
   "main": "app.js",
-  "repository": "https://github.com/edreg/skeleton.git",
-  "author": "Gerald Lippert <gerald.lippert@logsol.de>",
+  "repository": "https://github.com/edreg/covid-19.git",
+  "author": "Gerald Lippert <ger.lippert@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@symfony/webpack-encore": "^0.28.3",

@@ -17,7 +17,7 @@ class GetCovidDataCommand extends Command
 {
     // to make your command lazily loaded, configure the $defaultName static property,
     // so it will be instantiated only when the command is actually called.
-    public static $defaultName = 'skeleton:get-covid-data';
+    public static $defaultName = 'covid19:get-covid-data';
 
     private const DATA_REPOSITORY = 'https://github.com/CSSEGISandData/COVID-19.git';
     public const DATA_REPOSITORY_NAME = 'COVID-19';
