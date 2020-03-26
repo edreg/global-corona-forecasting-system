@@ -10,7 +10,6 @@ import * as echarts from 'echarts/lib/echarts';
 import 'echarts/lib/chart/line';
 import 'echarts/lib/chart/effectScatter';
 import 'echarts/lib/chart/scatter';
-import ExtensionAPI from 'echarts/lib/ExtensionAPI';
 import 'echarts/lib/action/geoRoam';
 import 'echarts/map/js/world';
 import 'echarts/lib/component/geo';
@@ -32,6 +31,7 @@ import {CoronaStatInterface} from "../interface/corona-stat-interface";
 import {CountryInterface} from "../interface/country-interface";
 import {SeriesGeoInterface} from "../interface/series-geo-interface";
 import {SeriesChartInterface} from "../interface/series-chart-interface";
+import {RegressionService} from "../service/regression-service";
 
 export class CoronaChart implements InitializableInterface, DestroyableInterface {
 
@@ -72,6 +72,9 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     private _geoChartApi: any;
 
 
+    private _regressionService: RegressionService;
+
+
     constructor(settingContainerId: string) {
         let settingsSelector = $('#' + settingContainerId);
 
@@ -81,6 +84,8 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     }
 
     init(): void {
+
+
         this._dataRowCount = 0;
         this._countryId = 0;
         this._regressionFactor = 5;
@@ -122,6 +127,8 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     initChart(): void {
         AjaxService.ajaxRequest(this._settings.jsonDataUrl, []).done((response: CoronaChartResponseInterface) => {
             this._chartResponseInterface = response;
+            this._regressionService = new RegressionService(response);
+            this._regressionService.init();
             this.handleChartResponse();
         })
         .fail(() => {
@@ -275,37 +282,17 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     processResponseData(): void
     {
-        let totalSeriesData = [];
-        let totalCountry = { name: 'total', id: 0 };
-        this._countryById[totalCountry.id] = totalCountry;
-
         for (let date of this._chartResponseInterface.dateList)
         {
             this._xAxisAssignment[date] = this._dataRowCount;
             this._dateList[this._dataRowCount] = date;
             this._chartDateList[this._dataRowCount] = date;
             this._lastDate = date;
-            totalSeriesData.push({
-                date: date,
-                country: totalCountry,
-                amountTotal: 0,
-                amountInfected: 0,
-                amountHealed: 0,
-                amountDeath: 0,
-                amountTotalTheDayBefore: 0,
-                amountHealedTheDayBefore: 0,
-                amountDeathTheDayBefore: 0,
-                doublingInfectionRate: 0,
-                doublingDeathRate: 0,
-                doublingHealedRate: 0,
-            });
+
             this._dataRowCount++;
         }
 
-        this._seriesDataByCountryId[0] = totalSeriesData;
-
         let countrySelectionList = [];
-        countrySelectionList.push({ id: 0, text: 'total', selected: true });
 
         for (let country of this._chartResponseInterface.countryList)
         {
@@ -334,18 +321,9 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             if (this._chartResponseInterface.data[country.id])
             {
                 this._statsPerCountry[country.id] = this._chartResponseInterface.data[country.id];
-                for (let stat of this._statsPerCountry[country.id])
-                {
-                    countryData[this._xAxisAssignment[stat.date]] = stat;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountTotal += stat.amountTotal;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountInfected += stat.amountInfected;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountHealed += stat.amountHealed;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountDeath += stat.amountDeath;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountTotalTheDayBefore += stat.amountTotalTheDayBefore;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountHealedTheDayBefore += stat.amountHealedTheDayBefore;
-                    this._seriesDataByCountryId[0][this._xAxisAssignment[stat.date]].amountDeathTheDayBefore += stat.amountDeathTheDayBefore;
-
-                }
+                $.each(this._statsPerCountry[country.id], (key, value) => {
+                    countryData[this._xAxisAssignment[value.date]] = value;
+                });
 
                 this._seriesDataByCountryId[country.id] = countryData.sort(function (a, b) {
                     return ((a.date < b.date) ? -1 : ((a.date > b.date) ? 1 : 0));
@@ -360,7 +338,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         for (let country of this._chartResponseInterface.countryList) {
             this._geoCoordMap[country.name] = [parseFloat(country.longitude.toString()), parseFloat(country.latitude.toString())];
         }
-
     }
 
     buildGeoSeriesData()
@@ -391,15 +368,9 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
         for (let country of this._chartResponseInterface.countryList)
         {
-            if (this._chartResponseInterface.data[country.id])
+            if (this._chartResponseInterface.data[country.id] && this._chartResponseInterface.data[country.id][this._selectedDate] && country.name !== 'World')
             {
-                for (let stat of this._statsPerCountry[country.id])
-                {
-                    if (stat.date === this._selectedDate)
-                    {
-                        lastAmountTotalGeoStatPerCountry[country.id] = stat;
-                    }
-                }
+                lastAmountTotalGeoStatPerCountry[country.id] = this._chartResponseInterface.data[country.id][this._selectedDate];
             }
         }
 
@@ -544,15 +515,22 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
         return {
             legend: {
-                top: '5%',
+                top: '2%',
                 data: legendData,
-                inactiveColor: '#565656',
+                inactiveColor: '#dadada',
                 selectedMode: 'single',
-                selected: this._selectedGeoChartLegend
+                selected: this._selectedGeoChartLegend,
+                left: '0%',
+                orient: 'vertical',
+                textStyle: {
+                    color: '#eee'
+                },
+                z: 500
             },
             name: 'geoBubbleChart',
             tooltip : {
                 trigger: 'item',
+                z: 500,
                 formatter: (params) =>
                 {
                     let stats = params.data.stat;
@@ -586,6 +564,16 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 },
                 z: 10
             },
+            grid: [{
+                show: true,
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                borderColor: 'transparent',
+                backgroundColor: '#404a59',
+                z: 5
+            }],
             geo: {
                 map: 'world',
                 center: this._geoMapCenter,
@@ -600,145 +588,14 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 itemStyle: {
                     borderWidth: 0.2,
                     borderColor: '#2b3543',
-                    areaColor: '#ccc'
+                    areaColor: '#a6a6a6',
                 },
                 left: this._geoMapLeft,
                 top: this._geoMapTop,
                 bottom: this._geoMapBottom,
                 right: this._geoMapRight,
                 zoom: this._geoMapZoom,
-                mapStyle: { //TODO check
-                    styleJson: [
-                        {
-                            "featureType": "water",
-                            "elementType": "all",
-                            "stylers": {
-                                "color": "#044161"
-                            }
-                        },
-                        {
-                            "featureType": "land",
-                            "elementType": "all",
-                            "stylers": {
-                                "color": "#004981"
-                            }
-                        },
-                        {
-                            "featureType": "boundary",
-                            "elementType": "geometry",
-                            "stylers": {
-                                "color": "#064f85"
-                            }
-                        },
-                        {
-                            "featureType": "railway",
-                            "elementType": "all",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "highway",
-                            "elementType": "geometry",
-                            "stylers": {
-                                "color": "#004981"
-                            }
-                        },
-                        {
-                            "featureType": "highway",
-                            "elementType": "geometry.fill",
-                            "stylers": {
-                                "color": "#005b96",
-                                "lightness": 1
-                            }
-                        },
-                        {
-                            "featureType": "highway",
-                            "elementType": "labels",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "arterial",
-                            "elementType": "geometry",
-                            "stylers": {
-                                "color": "#004981"
-                            }
-                        },
-                        {
-                            "featureType": "arterial",
-                            "elementType": "geometry.fill",
-                            "stylers": {
-                                "color": "#00508b"
-                            }
-                        },
-                        {
-                            "featureType": "poi",
-                            "elementType": "all",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "green",
-                            "elementType": "all",
-                            "stylers": {
-                                "color": "#056197",
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "subway",
-                            "elementType": "all",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "manmade",
-                            "elementType": "all",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "local",
-                            "elementType": "all",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "arterial",
-                            "elementType": "labels",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        },
-                        {
-                            "featureType": "boundary",
-                            "elementType": "geometry.fill",
-                            "stylers": {
-                                "color": "#029fd4"
-                            }
-                        },
-                        {
-                            "featureType": "building",
-                            "elementType": "all",
-                            "stylers": {
-                                "color": "#1a5787"
-                            }
-                        },
-                        {
-                            "featureType": "label",
-                            "elementType": "all",
-                            "stylers": {
-                                "visibility": "off"
-                            }
-                        }
-                    ]
-                }
+                z: 10
             },
             calculable : true,
             series: series
@@ -804,7 +661,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 shadowBlur: 10,
                 shadowColor: '#333'
             },
-            zlevel: 1
+            zlevel: 100
         };
     }
 

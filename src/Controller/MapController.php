@@ -26,19 +26,24 @@ class MapController extends AbstractController
      */
     private $dataService;
 
-    public function __construct( AquireDataService $dataService)
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
+
+    public function __construct(AquireDataService $dataService, LoggerInterface $logger)
     {
         $this->dataService = $dataService;
+        $this->logger = $logger;
     }
 
     /**
      * @Route("/query", name="map_upload", methods={"POST"})
-     * @param LoggerInterface                           $logger
      * @param \Symfony\Component\HttpFoundation\Request $request
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function upload(LoggerInterface $logger, Request $request) : Response
+    public function upload(Request $request) : Response
     {
         try
         {
@@ -62,7 +67,7 @@ class MapController extends AbstractController
         }
         catch (\Throwable $throwable)
         {
-            $logger->error($throwable->getMessage(), $throwable->getTrace());
+            $this->logger->error($throwable->getMessage(), $throwable->getTrace());
         }
 
         return $this->redirectToRoute('map_query');
@@ -71,13 +76,20 @@ class MapController extends AbstractController
     /**
      * @Route("/query_map_data", name="map_json_data")
      *
+     *
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      */
     public function jsonData() : JsonResponse
     {
         $response = new JsonResponse();
-
-        $response->setData($this->dataService->getChartResponse());
+        try
+        {
+            $response->setData($this->dataService->getChartResponse());
+        }
+        catch (\Throwable $throwable)
+        {
+            $this->logger->error($throwable->getMessage(), $throwable->getTrace());
+        }
 
         return $response;
     }

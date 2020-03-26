@@ -1,4 +1,5 @@
 import {CoronaChartResponseInterface} from "../interface/corona-chart-response-interface";
+import * as $ from "jquery";
 
 enum RegressionFormulaBehavingType
 {
@@ -15,5 +16,17 @@ enum RegressionType
 
 export class RegressionService
 {
+    get dataResponseInterface(): CoronaChartResponseInterface {
+        return this._dataResponseInterface;
+    }
+
     private _dataResponseInterface: CoronaChartResponseInterface;
+
+    constructor(dataResponseInterface: CoronaChartResponseInterface) {
+        this._dataResponseInterface = dataResponseInterface;
+    }
+
+    init() {
+
+    }
 }

@@ -3,8 +3,11 @@
 namespace App\Domain\Corona;
 
 use App\Command\GetCovidDataCommand;
+use App\Domain\Corona\Model\CoronaStatsModel;
+use App\Domain\Corona\Model\CountryModel;
 use App\Entity\CoronaStats;
 use App\Entity\Country;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -12,6 +15,10 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Serializer\SerializerInterface;
+use function array_values;
+use function explode;
+use function file_get_contents;
+use function strpos;
 
 /**
  * Class AquireDataService
@@ -61,7 +68,7 @@ class AquireDataService
 
     public function checkForNewData() : void
     {
-        $dateOfIssue = (new \DateTime())->setTime(0, 0, 0)->modify('-1 day'); // Update are provided at 23:59 UTC
+        $dateOfIssue = (new DateTime())->setTime(0, 0, 0)->modify('-1 day'); // Update are provided at 23:59 UTC
 
         $stat = $this->statsRepository->findOneBy(['date' => $dateOfIssue]);
 
@@ -110,12 +117,12 @@ class AquireDataService
 
     public function import($originalFileName, $pathName) : void
     {
-        $dateString = \explode('.', $originalFileName)[0];
-        if (\strpos($originalFileName, '_') !== false)
+        $dateString = explode('.', $originalFileName)[0];
+        if (strpos($originalFileName, '_') !== false)
         {
-            $dateString = \explode('_', $originalFileName)[0];
+            $dateString = explode('_', $originalFileName)[0];
         }
-        $dateOfIssue = \DateTime::createFromFormat('m-d-Y', $dateString)->setTime(0, 0, 0);
+        $dateOfIssue = DateTime::createFromFormat('m-d-Y', $dateString)->setTime(0, 0, 0);
         $stat = $this->statsRepository->findOneBy(['date' => $dateOfIssue]);
 
         if ($stat instanceof CoronaStats)
@@ -144,7 +151,7 @@ class AquireDataService
 
         $statByCountryAndDateList = [];
 
-        $data = $this->serializer->decode(\file_get_contents($pathName), 'csv');
+        $data = $this->serializer->decode(file_get_contents($pathName), 'csv');
         //new format from 2020-02-23
         //FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key
         foreach ($data as $datum)
@@ -212,6 +219,8 @@ class AquireDataService
     {
         $countryEntityList = $this->countryRepository->findAll();
         $countryList = [];
+        $infectedWorld = new CountryModel('World', 0, 0.0, 0.0, 0);
+
         /** @var Country $country */
         foreach ($countryEntityList as $country)
         {
@@ -221,14 +230,13 @@ class AquireDataService
             {
                 continue;
             }
-            $countryList[$id] = [
-                'name' => $country->getName(),
-                'id' => $id,
-                'latitude' => $country->getLatitude(),
-                'longitude' => $country->getLongitude(),
-                'population' => $country->getPopulation(),
-            ];
+            $infectedWorld->population += (int)$country->getPopulation();
+
+            $countryList[$id] =
+                new CountryModel($country->getName(), $id, (float)$country->getLatitude(), (float)$country->getLongitude(), (int)$country->getPopulation());
         }
+
+        $countryList[$infectedWorld->id] = $infectedWorld;
 
         $statsEntityList = $this->statsRepository->findAll();
         $statsList = [];
@@ -246,48 +254,55 @@ class AquireDataService
             }
             $dateList[$date] = $date;
 
-            if (!isset($statsList[$countryId][$date]))
+            if (!isset($statsList[$infectedWorld->id][$date]))
             {
-                $statsList[$countryId][$date] = [
-                    'date' => $date,
-                    'country' => $countryList[$countryId],
-                    'amountTotal' => 0,
-                    'amountTotalTheDayBefore' => 0,
-                    'amountInfected' => 0,
-                    'amountHealed' => 0,
-                    'amountHealedTheDayBefore' => 0,
-                    'amountDeath' => 0,
-                    'amountDeathTheDayBefore' => 0,
-                    'doublingInfectionRate' => 0,
-                    'doublingDeathRate' => 0,
-                    'doublingHealedRate' => 0,
-                ];
+                $statsList[$infectedWorld->id][$date] = new CoronaStatsModel($countryList[$infectedWorld->id], $date);
             }
 
-            $statsList[$countryId][$date]['amountTotal'] += $stats->getAmount();
-            $statsList[$countryId][$date]['amountHealed'] += $stats->getAmountHealed();
-            $statsList[$countryId][$date]['amountDeath'] += $stats->getAmountDeath();
-            $statsList[$countryId][$date]['amountTotalTheDayBefore'] += $stats->getAmountTheDayBefore();
-            $statsList[$countryId][$date]['amountHealedTheDayBefore'] += $stats->getAmountHealedTheDayBefore();
-            $statsList[$countryId][$date]['amountDeathTheDayBefore'] += $stats->getAmountDeathTheDayBefore();
-            $statsList[$countryId][$date]['doublingInfectionRate'] += $stats->getDoublingInfectionRateInDays();
-            $statsList[$countryId][$date]['doublingDeathRate'] += $stats->getDoublingDeathRateInDays();
-            $statsList[$countryId][$date]['doublingHealedRate'] += $stats->getDoublingHealedRateInDays();
+            if (!isset($statsList[$countryId][$date]))
+            {
+                $statsList[$countryId][$date] = new CoronaStatsModel($countryList[$countryId], $date);
+            }
+
+//            $worldStat = $statsList[$infectedWorld->id][$date];
+//            $statsModel = $statsList[$countryId][$date];
+
+            $this->sumUpValuesToStatsModel($stats, $statsList[$countryId][$date]);
+            $this->sumUpValuesToStatsModel($stats, $statsList[$infectedWorld->id][$date]);
         }
 
         asort($dateList);
 
-        $statsResponse = [];
+        $statsResponseByCountry = [];
+        $statsResponseByDate = [];
 
         foreach ($statsList as $id => $itemList)
         {
-            $statsResponse[$id] = \array_values($itemList);
+            $statsResponseByCountry[$id] = array_values($itemList);
+
+//            foreach ($itemList as $date => $tmpStatsModel)
+//            {
+//                $statsResponseByDate[$date][$id] = $tmpStatsModel;
+//            }
         }
 
         return [
             'countryList' => array_values($countryList),
-            'data' => $statsResponse,
+            'data' => $statsList,
+            //'data' => $statsResponseByCountry,
+           // 'dataByDate' => $statsResponseByDate,
             'dateList' => array_values($dateList)
         ];
+    }
+
+    private function sumUpValuesToStatsModel(CoronaStats $stats, CoronaStatsModel $statsModel) : void
+    {
+        $statsModel->amountTotal += $stats->getAmount();
+        $statsModel->amountHealed += $stats->getAmountHealed();
+        $statsModel->amountDeath += $stats->getAmountDeath();
+        $statsModel->amountTotalTheDayBefore += $stats->getAmountTheDayBefore();
+        $statsModel->amountHealedTheDayBefore += $stats->getAmountHealedTheDayBefore();
+        $statsModel->amountDeathTheDayBefore += $stats->getAmountDeathTheDayBefore();
+        $statsModel->calculate();
     }
 }
