@@ -1,4 +1,4 @@
-# covid-19
+# Global Corona Forecasting System (GCFS)
 A symfony based covid-19 analysis tool
 
 This tool uses the following repository as data source: https://github.com/CSSEGISandData/COVID-19
