@@ -130,20 +130,7 @@ class AquireDataService
             return;
         }
 
-        $countryMapping = [
-            'Mainland China' => 'China',
-            'Bahamas, The' => 'Bahamas',
-            'The Bahamas' => 'Bahamas',
-            'The Gambia' => 'Gambia',
-            'Gambia, The' => 'Gambia',
-            'Congo (Kinshasa)' => 'Congo [DRC]',
-            'Congo (Brazzaville)' => 'Congo [Republic]',
-            'Republic of the Congo' => 'Congo [Republic]',
-            'Iran (Islamic Republic of)' => 'Iran',
-            'Cabo Verde' => 'Cape Verde',
-            'Republic of Korea' => 'South Korea',
-            'Timor-Leste' => 'East Timor',
-        ];
+        $countryMapping = $this->getCountryMapping();
 
         $countrySkipList = [
             'Others' => true
@@ -220,10 +207,11 @@ class AquireDataService
         $countryEntityList = $this->countryRepository->findAll();
         $countryList = [];
         $infectedWorld = new CountryModel('World', 0, 0.0, 0.0, 0);
-        $countrySkipList = [
-            'Cruise Ship' => true,
-            'Diamond Princess' => true,
-        ];
+
+        $countrySkipList = $this->getCountryMapping();
+        $countrySkipList['Cruise Ship'] = true;
+        $countrySkipList['Diamond Princess'] = true;
+
 
         /** @var Country $country */
         foreach ($countryEntityList as $country)
@@ -269,33 +257,15 @@ class AquireDataService
                 $statsList[$countryId][$date] = new CoronaStatsModel($countryList[$countryId], $date);
             }
 
-//            $worldStat = $statsList[$infectedWorld->id][$date];
-//            $statsModel = $statsList[$countryId][$date];
-
             $this->sumUpValuesToStatsModel($stats, $statsList[$countryId][$date]);
             $this->sumUpValuesToStatsModel($stats, $statsList[$infectedWorld->id][$date]);
         }
 
         asort($dateList);
 
-        $statsResponseByCountry = [];
-        $statsResponseByDate = [];
-
-        foreach ($statsList as $id => $itemList)
-        {
-            $statsResponseByCountry[$id] = array_values($itemList);
-
-//            foreach ($itemList as $date => $tmpStatsModel)
-//            {
-//                $statsResponseByDate[$date][$id] = $tmpStatsModel;
-//            }
-        }
-
         return [
             'countryList' => array_values($countryList),
             'data' => $statsList,
-            //'data' => $statsResponseByCountry,
-           // 'dataByDate' => $statsResponseByDate,
             'dateList' => array_values($dateList)
         ];
     }
@@ -309,5 +279,37 @@ class AquireDataService
         $statsModel->amountHealedTheDayBefore += $stats->getAmountHealedTheDayBefore();
         $statsModel->amountDeathTheDayBefore += $stats->getAmountDeathTheDayBefore();
         $statsModel->calculate();
+    }
+
+    /**
+     * @return array
+     */
+    private function getCountryMapping() : array
+    {
+        return [
+            'Mainland China'             => 'China',
+            'Bahamas, The'               => 'Bahamas',
+            'The Bahamas'                => 'Bahamas',
+            'The Gambia'                 => 'Gambia',
+            'Gambia, The'                => 'Gambia',
+            'Congo (Kinshasa)'           => 'Congo [DRC]',
+            'Congo (Brazzaville)'        => 'Congo [Republic]',
+            'Republic of the Congo'      => 'Congo [Republic]',
+            'Iran (Islamic Republic of)' => 'Iran',
+            'Cabo Verde'                 => 'Cape Verde',
+            'Republic of Korea'          => 'South Korea',
+            'Timor-Leste'                => 'East Timor',
+            'Burma'                      => 'Myanmar [Burma]',
+            'Unites States'              => 'US',
+            'USA'                        => 'US',
+            'UK'                         => 'United Kingdom',
+            'Taiwan*'                    => 'Taiwan',
+            'Taipei and environs'        => 'Taiwan',
+            'Hong Kong SAR'              => 'China',
+            'Hong Kong'                  => 'China',
+            'Czechia'                    => 'Czech Republic',
+            'Viet Nam'                   => 'Vietnam',
+            'Zimbabw'                    => 'Zimbabwe',
+        ];
     }
 }

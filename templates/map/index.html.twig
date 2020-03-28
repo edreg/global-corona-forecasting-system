@@ -12,7 +12,7 @@
     {% block navigation %}{% endblock %}
     <div id="{{ configurationId }}" class="hide">{{ settings }}</div>
 
-    <div role="tabpanel">
+    <div role="tabpanel" class="map-content">
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="nav-item">
@@ -56,7 +56,7 @@
                     <div class="col-md-4"></div>
                     <div class="col-md-4"></div>
                 </div>
-                <div id="corona-geo-chart-div" style="width: 100em; height: 50em;"></div>
+                <div id="corona-geo-chart-div" class="echart-map"></div>
             </div>
             <div role="tabpanel" class="tab-pane" id="tabs-info">
                 <div id="information" class="row">
@@ -123,16 +123,16 @@
                         </div>
                     </div>
                 </div>
-                <div id="corona-chart-per-country-div" style="width: 100em; height: 50em;"></div>
+                <div id="corona-chart-per-country-div" class="echart-map"></div>
             </div>
 
             <div role="tabpanel" class="tab-pane active" id="tabs-table">
+                <div class="spacer"></div>
                 <div class="row">
                     <div class="col-md-3">
                         <form>
                             <div class="input-group date" data-provide="datepicker">
-                                <input id="stats-table-datepicker" type="text" name="date" {#data-date-format="yyyy-mm-dd"#} class="form-control"
-                                       value="{{ dateValue }}" placeholder="pick a date...">
+                                <input id="stats-table-datepicker" type="text" name="date" class="form-control" value="{{ dateValue }}" placeholder="pick a date...">
                                 <div class="input-group-append">
                                     <button type="submit" class="btn btn-outline-secondary">
                                         <span class="fa fa-search">{{ 'Send'|trans }}</span>
@@ -143,22 +143,22 @@
                     </div>
                     <div class="col-md-9"></div>
                 </div>
+                <div class="spacer"></div>
 
-                <table class="table tableFixHead">
+                <table class="table tableFixHead" id="corona-stats">
                     <thead>
                         <tr>
-                            {#<th{% if pagination.isSorted('coronaStats.country.name') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Country', 'coronaStats.country.name') }}</th>#}
-                            <th>{{ 'Country' }}</th>
-                            <th{% if pagination.isSorted('coronaStats.amount') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Infections', 'coronaStats.amount') }}</th>
-                            <th>{{ 'New infections' }}</th>
-                            <th>{{ 'Doubling rate of infections in days' }}</th>
-                            <th{% if pagination.isSorted('coronaStats.amountHealed') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Healed', 'coronaStats.amountHealed') }}</th>
-                            <th>{{ 'New healed' }}</th>
-                            <th>{{ 'Doubling rate of healed in days' }}</th>
-                            <th{% if pagination.isSorted('coronaStats.amountDeath') %} class="sorted"{% endif %}>{{ knp_pagination_sortable(pagination, 'Death', 'coronaStats.amountDeath') }}</th>
-                            <th>{{ 'New deaths' }}</th>
-                            <th>{{ 'Doubling rate of deaths in days' }}</th>
-                            <th>{{ 'Infections by 1 mio inhabitants' }}</th>
+                            <th>{{ 'Country'|trans }}</th>
+                            <th>{{ 'Infections'|trans }}</th>
+                            <th>{{ 'New infections'|trans }}</th>
+                            <th>{{ 'Doubling rate of infections in days'|trans }}</th>
+                            <th>{{ 'Healed'|trans }}</th>
+                            <th>{{ 'New healed'|trans }}</th>
+                            <th>{{ 'Doubling rate of healed in days'|trans }}</th>
+                            <th>{{ 'Death'|trans }}</th>
+                            <th>{{ 'New deaths'|trans }}</th>
+                            <th>{{ 'Doubling rate of deaths in days'|trans }}</th>
+                            <th>{{ 'Infections by 1 mio inhabitants'|trans }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -183,9 +183,9 @@
 
                 </table>
                 {# display navigation #}
-                <div class="navigation">
-                    {{ knp_pagination_render(pagination) }}
-                </div>
+{#                <div class="navigation">#}
+{#                    {{ knp_pagination_render(pagination) }}#}
+{#                </div>#}
             </div>
         </div>
     </div>

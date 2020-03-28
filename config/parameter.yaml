@@ -1,4 +1,4 @@
 parameters:
-  locale: 'de'
+  locale: 'en'
   admin_password: 'admin'
   database_connection: 'mysqli://root@localhost:3306/skeleton_ed'

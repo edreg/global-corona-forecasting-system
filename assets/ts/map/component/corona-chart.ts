@@ -31,7 +31,10 @@ import {CoronaStatInterface} from "../interface/corona-stat-interface";
 import {CountryInterface} from "../interface/country-interface";
 import {SeriesGeoInterface} from "../interface/series-geo-interface";
 import {SeriesChartInterface} from "../interface/series-chart-interface";
-import {RegressionService} from "../service/regression-service";
+import {RegressionAndDataService} from "../service/regression-and-data-service";
+import {DateTimeService} from "../../service/date-time-service";
+import {GeoMapService} from "../service/geo-map-service";
+import {DataTableService} from "../../service/data-table-service";
 
 export class CoronaChart implements InitializableInterface, DestroyableInterface {
 
@@ -41,38 +44,18 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     private _chartResponseInterface: CoronaChartResponseInterface;
     private _chartPerCountryDiv: HTMLDivElement | any;
     private _geoChartDiv: HTMLElement | any;
-    private _xAxisAssignment: {};
-    private _statsPerCountry: {};
-    private _seriesDataByCountryId: {};
-    private _countrySelectionList: any[];
     private _countrySelection: JQuery<HTMLElement>;
-    private _countryById: {};
-    private _dataRowCount: number;
-    private _dateList: {};
-    private _regressionDateList: {};
-    private _chartDateList: {};
-    private _lastDate;
-    private _selectedDate;
-    private _regressionFactor: number;
-    private _geoCoordMap: {};
     private _countryId: number;
     private _selectedCountryIdList: any;
-    private _selectedGeoChartLegend: {};
+
     private _selectedChartLegend: {};
-    private _regressionFormulaByName: {};
-    private _seriesGeoModelList: Array<SeriesGeoInterface>;
     private _seriesChartModelList: Array<SeriesChartInterface>;
-    private _geoMapCenter: number[];
-    private _geoMapZoom: number;
-    private _geoMapLeft: string;
-    private _geoMapTop: string;
-    private _geoMapBottom: string;
-    private _geoMapRight: string;
-    private _forecastInDays: number;
-    private _geoChartApi: any;
 
 
-    private _regressionService: RegressionService;
+    private _dataService: RegressionAndDataService;
+    private _dateTimeService: DateTimeService;
+    private _geoMapService: GeoMapService;
+    private _dataTableService: DataTableService;
 
 
     constructor(settingContainerId: string) {
@@ -84,51 +67,32 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     }
 
     init(): void {
-
-
-        this._dataRowCount = 0;
         this._countryId = 0;
-        this._regressionFactor = 5;
-        this._forecastInDays = 7;
         this._geoChartDiv = $('div#corona-geo-chart-div').get(0);
         this._geoChart = echarts.init(this._geoChartDiv);
         this._chartPerCountryDiv = $('div#corona-chart-per-country-div').get(0);
         this._chartPerCountry = echarts.init(this._chartPerCountryDiv);
-        this._xAxisAssignment = {};
-        this._statsPerCountry = {};
-        this._regressionFormulaByName = {};
-        this._countrySelectionList = [];
-        this._seriesDataByCountryId = {};
-        this._seriesGeoModelList = [];
         this._seriesChartModelList = [];
-        this._dateList = {};
-        this._regressionDateList = {};
-        this._chartDateList = {};
-        this._countryById = {};
         this._selectedCountryIdList = [0];
-        this._geoCoordMap = {};
-        this._geoMapCenter = [11, 13];//[10, 59];
-        this._geoMapLeft = '0%';
-        this._geoMapTop = '0%';
-        this._geoMapBottom = '0%';
-        this._geoMapRight = '0%';
-        this._geoMapZoom = 1;
-        //this._geoChartApi = new ExtensionAPI(this._geoChart);
+        this._dataTableService = new DataTableService();
+        this._dataTableService.initTable('corona-stats');
+
         this._countrySelection = $('select#country-selection');
-        // @ts-ignore
-        // $('#stats-table-datepicker').datepicker({
-        //     uiLibrary: 'bootstrap4',
-        //     format: 'yyyy-mm-dd',
-        //
-        // });
+
         this.initChart();
     }
 
     initChart(): void {
         AjaxService.ajaxRequest(this._settings.jsonDataUrl, []).done((response: CoronaChartResponseInterface) => {
             this._chartResponseInterface = response;
-            this._regressionService = new RegressionService(response);
-            this._regressionService.init();
+            this._dataService = new RegressionAndDataService(response);
+            this._dateTimeService = new DateTimeService();
+            this.buildRangeConfig();
+            this.buildDateConfig();
+            this._dataService.init();
+            this.buildCountryConfig();
+            this._geoMapService = new GeoMapService();
+            this._geoMapService.init(this._dataService.geoCoordMap);
             this.handleChartResponse();
         })
         .fail(() => {
@@ -140,29 +104,21 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     handleChartResponse(): void
     {
-
-        this.processResponseData();
-        this.buildRangeConfig();
-        this.buildDateConfig();
-        this.buildCountryConfig();
-
         this._chartPerCountry.setOption(this.getChartPerCountryOptions(), true);
-        this._geoChart.setOption(this.getGeoChartOptions(), true);
+
+        this._geoChart.setOption(this._geoMapService.getGeoChartOptions(this._dataService.seriesGeoModelList), true);
         this._geoChart.on('legendselectchanged', (params) => {
-            this._selectedGeoChartLegend = params.selected;
+            this._geoMapService.selectedGeoChartLegend = params.selected;
         });
         this._chartPerCountry.on('legendselectchanged', (params) => {
-            // console.log(params);
             this._selectedChartLegend = params.selected;
         });
         this._geoChart.on('georoam', (params) => {
-             console.log('georoam');
-             console.log(this._geoChart.getOption().geo);
-            // console.log(params);
-            //this._geoChart.getOption().geo.roam = true;
-            //this.updateZoomAndCenterOfGeoChart();
+             // console.log('georoam');
+             // console.log(this._geoChart.getOption().geo);
         });
     }
+
     fireRoamingEvents() {
         this._geoChart.dispatchAction({
             type: 'geoRoam',
@@ -203,8 +159,17 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
         let dateLabel = $("#selected-date");
         let labelColor = dateLabel.css('color');
-        this._selectedDate = this._lastDate;
+
+        this._dataService.selectedDate = this._dataService.lastDate;
         let today = Math.floor(new Date().getTime() / 1000);
+        let tableDateInput = $('input#stats-table-datepicker');
+        let inputValue: string|any = tableDateInput.val();
+        let tableDate = new Date(inputValue);
+        console.log(this._dateTimeService.formatDate(tableDate));
+
+        this._dataService.lastDate = this._dateTimeService.formatDate(new Date((today - 86400) * 1000));
+        this._dataService.selectedDate = this._dataService.lastDate;
+
         let plusSixtyDays = 60 * 86400 + today;
 
         let rangeControl = $('input#slider-date-range');
@@ -231,12 +196,12 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             dateLabel.text(label);
             dateLabel.css('color', tmpLabelColor);
             //this.updateZoomAndCenterOfGeoChart();
-            this._selectedDate = this.formatDate(date);
-            this._geoChart.setOption(this.getGeoChartOptions(), true);
+            this._dataService.selectedDate = this._dateTimeService.formatDate(date);
+            this._dataService.buildGeoSeriesData();
+
+            this._geoChart.setOption(this._geoMapService.getGeoChartOptions(this._dataService.seriesGeoModelList), true);
             this.fireRoamingEvents();
         });
-
-
     }
 
     buildRangeConfig()
@@ -244,23 +209,23 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         let rangeControl = $('input#polynomial-coefficients-range-control');
         rangeControl.on("input change", (event) => {
             let val = $(event.target).val();
-            this._regressionFactor = (parseInt(val.toString()));
+            this._dataService.regressionFactor = (parseInt(val.toString()));
             this._chartPerCountry.setOption(this.getChartPerCountryOptions(), true);
-        }).val(this._regressionFactor);
+        }).val(this._dataService.regressionFactor);
 
         let forecastControl = $('input#forecast-days-range-control');
         forecastControl.on("input change", (event) => {
             let val = $(event.target).val();
-            this._forecastInDays = (parseInt(val.toString()));
-            this._regressionDateList = this._chartDateList;
+            this._dataService.forecastInDays = (parseInt(val.toString()));
+            this._dataService.regressionDateList = this._dataService.chartDateList;
 
             this._chartPerCountry.setOption(this.getChartPerCountryOptions(), true);
-        }).val(this._forecastInDays);
+        }).val(this._dataService.forecastInDays);
     }
 
     buildCountryConfig(): void
     {
-        $.each(this._countrySelectionList, (key, value) => {
+        $.each(this._dataService.countrySelectionList.sort(function (a, b) { return ((a.text < b.text) ? -1 : ((a.text > b.text) ? 1 : 0)); }), (key, value) => {
             let option = $("<option></option>").attr("value", value.id).attr("data-tokens", value.text).text(value.text);
             if (value.selected === true)
             {
@@ -274,395 +239,8 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
         this._countrySelection.off('changed.bs.select').on('changed.bs.select', (/*e, clickedIndex, isSelected, previousValue*/) => {
             this._selectedCountryIdList = $(this._countrySelection).val();
-
-            //this._countryId = parseInt($(this._countrySelection).val().toString());
             this._chartPerCountry.setOption(this.getChartPerCountryOptions(), true);
         });
-    }
-
-    processResponseData(): void
-    {
-        for (let date of this._chartResponseInterface.dateList)
-        {
-            this._xAxisAssignment[date] = this._dataRowCount;
-            this._dateList[this._dataRowCount] = date;
-            this._chartDateList[this._dataRowCount] = date;
-            this._lastDate = date;
-
-            this._dataRowCount++;
-        }
-
-        let countrySelectionList = [];
-
-        for (let country of this._chartResponseInterface.countryList)
-        {
-            this._countryById[country.id] = country;
-            countrySelectionList.push({ id: country.id, text: country.name, selected: false });
-            let emptySeriesData = [];
-            for (let date of this._chartResponseInterface.dateList)
-            {
-                emptySeriesData.push({
-                    date: date,
-                    country: country,
-                    amountTotal: 0,
-                    amountInfected: 0,
-                    amountHealed: 0,
-                    amountDeath: 0,
-                    amountTotalTheDayBefore: 0,
-                    amountHealedTheDayBefore: 0,
-                    amountDeathTheDayBefore: 0,
-                    doublingInfectionRate: 0,
-                    doublingDeathRate: 0,
-                    doublingHealedRate: 0,
-                });
-            }
-            let countryData = emptySeriesData;
-
-            if (this._chartResponseInterface.data[country.id])
-            {
-                this._statsPerCountry[country.id] = this._chartResponseInterface.data[country.id];
-                $.each(this._statsPerCountry[country.id], (key, value) => {
-                    countryData[this._xAxisAssignment[value.date]] = value;
-                });
-
-                this._seriesDataByCountryId[country.id] = countryData.sort(function (a, b) {
-                    return ((a.date < b.date) ? -1 : ((a.date > b.date) ? 1 : 0));
-                });
-            }
-        }
-
-        this._countrySelectionList = countrySelectionList.sort(function (a, b) {
-            return ((a.name < b.name) ? -1 : ((a.name > b.name) ? 1 : 0));
-        });
-
-        for (let country of this._chartResponseInterface.countryList) {
-            this._geoCoordMap[country.name] = [parseFloat(country.longitude.toString()), parseFloat(country.latitude.toString())];
-        }
-    }
-
-    buildGeoSeriesData()
-    {
-        let lastAmountTotalGeoStatPerCountry = {};
-
-        let amountTotal = 0;
-        let amountInfected = 0;
-        let amountHealed = 0;
-        let amountDeath = 0;
-        let amountTotalPerPopulation = 0;
-        let amountHealedPerPopulation = 0;
-        let amountDeathPerPopulation = 0;
-        let amountInfectedPerPopulation = 0;
-        let lastAmountTotalGeoData = [];
-        let lastAmountInfectedGeoData = [];
-        let lastAmountHealedGeoData = [];
-        let lastAmountDeathGeoData = [];
-        let lastAmountTotalGeoDataPopulation = [];
-        let lastAmountInfectedGeoDataPopulation = [];
-        let lastAmountHealedGeoDataPopulation = [];
-        let lastAmountDeathGeoDataPopulation = [];
-
-        let doublingRate = 0;
-        let relativeAmountNewCases = 0;
-        let doublingRateSeriesData = [];
-        let newCasesSeriesData = [];
-
-        for (let country of this._chartResponseInterface.countryList)
-        {
-            if (this._chartResponseInterface.data[country.id] && this._chartResponseInterface.data[country.id][this._selectedDate] && country.name !== 'World')
-            {
-                lastAmountTotalGeoStatPerCountry[country.id] = this._chartResponseInterface.data[country.id][this._selectedDate];
-            }
-        }
-
-        $.each(lastAmountTotalGeoStatPerCountry, (key, stat: CoronaStatInterface) => {
-
-            let perPopulation = (stat.country.population) || 1;
-
-            let totalPerPopulation = (stat.amountTotal / perPopulation);
-            let healedPerPopulation = (stat.amountHealed / perPopulation);
-            let deathPerPopulation = (stat.amountDeath / perPopulation);
-            let infectedPerPopulation = ((stat.amountTotal - stat.amountHealed - stat.amountDeath) / perPopulation);
-            let newCases = stat.amountTotal - stat.amountTotalTheDayBefore;
-
-            if (amountTotal < stat.amountTotal) { amountTotal = stat.amountTotal; }
-            if (amountInfected < stat.amountInfected) {amountInfected = stat.amountInfected;}
-            if (amountHealed < stat.amountHealed) {amountHealed = stat.amountHealed;}
-            if (amountDeath < stat.amountDeath) {amountDeath = stat.amountDeath;}
-            if (relativeAmountNewCases < newCases) {relativeAmountNewCases = newCases;}
-            if (amountTotalPerPopulation < totalPerPopulation) {amountTotalPerPopulation = totalPerPopulation;}
-            if (amountHealedPerPopulation < healedPerPopulation) {amountHealedPerPopulation = healedPerPopulation;}
-            if (amountDeathPerPopulation < deathPerPopulation) {amountDeathPerPopulation = deathPerPopulation;}
-            if (amountInfectedPerPopulation < infectedPerPopulation) {amountInfectedPerPopulation = infectedPerPopulation;}
-            if (stat.doublingInfectionRate > 0 && doublingRate < stat.doublingInfectionRate) {doublingRate = stat.doublingInfectionRate;}
-
-            lastAmountTotalGeoData.push({name: stat.country.name, value: stat.amountTotal, stat: stat});
-            lastAmountInfectedGeoData.push({name: stat.country.name, value: stat.amountTotal - stat.amountHealed - stat.amountDeath, stat: stat});
-            lastAmountHealedGeoData.push({name: stat.country.name, value: stat.amountHealed, stat: stat});
-            lastAmountDeathGeoData.push({name: stat.country.name, value: stat.amountDeath, stat: stat});
-            newCasesSeriesData.push({name: stat.country.name, value: newCases, stat: stat});
-            if (stat.doublingInfectionRate > 0)
-            {
-                doublingRateSeriesData.push({name: stat.country.name, value: stat.doublingInfectionRate, stat: stat});
-            }
-            lastAmountTotalGeoDataPopulation.push({name: stat.country.name, value: (stat.amountTotal / perPopulation), stat: stat});
-            lastAmountInfectedGeoDataPopulation.push({name: stat.country.name, value: ((stat.amountTotal - stat.amountHealed - stat.amountDeath) / perPopulation), stat: stat});
-            lastAmountHealedGeoDataPopulation.push({name: stat.country.name, value: (stat.amountHealed / perPopulation), stat: stat});
-            lastAmountDeathGeoDataPopulation.push({name: stat.country.name, value: (stat.amountDeath / perPopulation), stat: stat});
-        });
-
-        this._seriesGeoModelList = [];
-
-        this._seriesGeoModelList.push({
-            name: 'cases',
-            data: lastAmountTotalGeoData,
-            relativeAmount: amountTotal,
-            color: '#ffce1b',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'infected',
-            data: lastAmountInfectedGeoData,
-            relativeAmount: amountTotal,
-            color: '#112aff',
-            invertRelativeAmount: false,
-            selected: true
-        });
-        this._seriesGeoModelList.push({
-            name: 'healed',
-            data: lastAmountHealedGeoData,
-            relativeAmount: amountHealed,
-            color: '#2a7a2d',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'new cases',
-            data: newCasesSeriesData,
-            relativeAmount: relativeAmountNewCases,
-            color: '#7a1345',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'doublingRateInfections',
-            data: doublingRateSeriesData,
-            relativeAmount: doublingRate,
-            color: '#7a4e73',
-            invertRelativeAmount: true,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'death',
-            data: lastAmountDeathGeoData,
-            relativeAmount: amountDeath,
-            color: '#ff2e36',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'cases/population',
-            data: lastAmountTotalGeoDataPopulation,
-            relativeAmount: amountTotalPerPopulation,
-            color: '#c79a1b',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'infected/population',
-            data: lastAmountInfectedGeoDataPopulation,
-            relativeAmount: amountInfectedPerPopulation,
-            color: '#1011c7',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'healed/population',
-            data: lastAmountHealedGeoDataPopulation,
-            relativeAmount: amountHealedPerPopulation,
-            color: '#1d441f',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'death/population',
-            data: lastAmountDeathGeoDataPopulation,
-            relativeAmount: amountDeathPerPopulation,
-            color: '#631219',
-            invertRelativeAmount: false,
-            selected: false
-        });
-    }
-
-    getGeoChartOptions(): any {
-
-        this.buildGeoSeriesData();
-        let series = [];
-        let legendData = [];
-        let legendSelected = {};
-
-        for (let geoSeriesModel of this._seriesGeoModelList)
-        {
-            legendData.push(geoSeriesModel.name);
-            series.push(this.getGeoSeries(geoSeriesModel));
-            legendSelected[geoSeriesModel.name] = geoSeriesModel.selected;
-        }
-
-        if (typeof this._selectedGeoChartLegend === 'undefined')
-        {
-            this._selectedGeoChartLegend = legendSelected;
-        }
-
-        return {
-            legend: {
-                top: '2%',
-                data: legendData,
-                inactiveColor: '#3e4257',
-                selectedMode: 'single',
-                selected: this._selectedGeoChartLegend,
-                left: '0%',
-                orient: 'vertical',
-                textStyle: {
-                    color: '#571117'
-                },
-                z: 500
-            },
-            name: 'geoBubbleChart',
-            tooltip : {
-                trigger: 'item',
-                z: 500,
-                formatter: (params) =>
-                {
-                    let stats = params.data.stat;
-                    let result = params.data.name + '(population: ' + stats.country.population + ')';
-
-                    if (typeof stats !== 'undefined')
-                    {
-                        result += '<br>'
-                            + 'total cases: <strong>' + stats.amountTotal + '</strong>' + '<br>'
-                            + 'infected: <strong>' + (stats.amountTotal - stats.amountHealed - stats.amountDeath) + '</strong>' + '<br>'
-                            + 'new cases: <strong>' + (stats.amountTotal - stats.amountTotalTheDayBefore) + '</strong>' + '<br>'
-                            + 'healed: <strong>' + stats.amountHealed + '</strong>' + '<br>'
-                            + 'doubling infection rate: <strong>' + parseFloat(stats.doublingInfectionRate).toFixed(1) + '</strong>' + '<br>'
-                            + 'death: <strong>' + stats.amountDeath + '</strong>' + '<br>';
-                    }
-
-                    return result;
-                }
-            },
-            toolbox: this.getToolbox(),
-            brush: {
-                geoIndex: 0,
-                brushLink: 'all',
-                inBrush: {
-                    opacity: 1,
-                    symbolSize: 14
-                },
-                outOfBrush: {
-                    color: '#000',
-                    opacity: 0.2
-                },
-                z: 10
-            },
-            grid: [{
-                show: true,
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                borderColor: 'transparent',
-                backgroundColor: '#9dbfd8',
-                z: 5
-            }],
-            geo: {
-                map: 'world',
-                center: this._geoMapCenter,
-                silent: true,
-                roam: true,
-                emphasis: {
-                    label: {
-                        show: false,
-                        areaColor: '#eee'
-                    }
-                },
-                itemStyle: {
-                    borderWidth: 0.2,
-                    borderColor: '#2b3543',
-                    areaColor: '#ebebeb',
-                },
-                left: this._geoMapLeft,
-                top: this._geoMapTop,
-                bottom: this._geoMapBottom,
-                right: this._geoMapRight,
-                zoom: this._geoMapZoom,
-                z: 10
-            },
-            calculable : true,
-            series: series
-        }
-    }
-
-    //getGeoSeries(name: string, data: any[], relativeAmount: number, color: string) {
-    getGeoSeries(geoSeriesModel: SeriesGeoInterface) {
-        return {
-            name: geoSeriesModel.name,
-            type: 'effectScatter',
-            coordinateSystem: 'geo',
-            data: this.convertGeoData(geoSeriesModel.data),
-            hoverAnimation: true,
-            symbolSize: (val, params) => {
-                let result;
-                if (geoSeriesModel.invertRelativeAmount)
-                {
-                    let calculatedValue = 100 - val[2];
-
-                    if (calculatedValue > 98)
-                    {
-                        result = 100;
-                    }
-                    else if (calculatedValue > 95)
-                    {
-                        result = 50;
-                    }
-                    else if (calculatedValue > 90)
-                    {
-                        result = 15;
-                    }
-                    else if (calculatedValue > 80)
-                    {
-                        result = 8;
-                    }
-                    else
-                    {
-                        result = 5;
-                    }
-                }
-                else
-                {
-                    result = Math.max(Math.min((val[2] / geoSeriesModel.relativeAmount) * 100, 100), 5);
-                }
-                return result;
-            },
-            showEffectOn: 'render',
-            rippleEffect: {
-                brushType: 'stroke'
-            },
-            label: {
-                show: false
-            },
-            emphasis: {
-                label: {
-                    show: false
-                }
-            },
-            itemStyle: {
-                borderColor: '#fff',
-                color: geoSeriesModel.color,
-                shadowBlur: 10,
-                shadowColor: '#333'
-            },
-            zlevel: 100
-        };
     }
 
     getChartPerCountryOptions(): any {
@@ -673,7 +251,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         let legendSelectedObject = [];
         let buildLegend = true;
         this._seriesChartModelList = [];
-        this._regressionDateList = $.extend(true, {}, this._chartDateList);
+        this._dataService.regressionDateList = $.extend(true, {}, this._dataService.chartDateList);
 
         for (let countryId of this._selectedCountryIdList)
         {
@@ -685,10 +263,10 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             let amountInfectedNew = [];
             let amountHealedNew = [];
             let amountDiedNew = [];
-            let country: CountryInterface = this._countryById[countryId];
+            let country: CountryInterface = this._dataService.countryById[countryId];
             chartNameList.push(country.name);
 
-            $.each(this._seriesDataByCountryId[countryId], (key, stat:CoronaStatInterface) => {
+            $.each(this._dataService.seriesDataByCountryId[countryId], (key, stat:CoronaStatInterface) => {
                 doublingInfectionRate.push(stat.doublingInfectionRate);
                 amountActive.push(stat.amountTotal - stat.amountHealed - stat.amountDeath);
                 amountInfected.push(stat.amountTotal);
@@ -700,7 +278,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             });
 
             let newInfectedSeriesModel = {color: '#3243e2', selected: false, countryName: country.name, data: amountInfectedNew, name: 'New infections', buildRegression: true, regressionType: 'polynomial'};
-            this.getRegression(newInfectedSeriesModel);
+            this._dataService.getRegression(newInfectedSeriesModel);
             let amountInfectedByNewInfections = [];
             let temValueAmountInfected = 0;
             $.each(newInfectedSeriesModel.data, (key, value) => {
@@ -749,7 +327,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
         let xAxisData = [];
 
-        $.each(this._regressionDateList, (key, date) => {
+        $.each(this._dataService.regressionDateList, (key, date) => {
             xAxisData.push(date);
         });
 
@@ -803,7 +381,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     {
         if (chartModel.buildRegression === true)
         {
-            this.getRegression(chartModel);
+            this._dataService.getRegression(chartModel);
         }
 
         let regressionData = chartModel.data;
@@ -819,7 +397,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 label: {
                     show: true,
                     position: 'middle',
-                    formatter: (typeof this._regressionFormulaByName[chartModel.name] !== 'undefined' ? this._regressionFormulaByName[chartModel.name] : '') + ' ' + chartModel.countryName,
+                    formatter: (typeof this._dataService.regressionFormulaByName[chartModel.name] !== 'undefined' ? this._dataService.regressionFormulaByName[chartModel.name] : '') + ' ' + chartModel.countryName,
                     textStyle: {
                         color: '#333',
                         fontSize: 14
@@ -847,7 +425,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                     [
                         {
                             name: "trend",
-                            xAxis: this._xAxisAssignment[this._lastDate]
+                            xAxis: this._dataService.xAxisAssignment[this._dataService.lastDate]
                         },
                         {
                             xAxis: regressionData.length - 1
@@ -884,95 +462,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         };
     }
 
-    getRegression(chartModel: SeriesChartInterface)
-    {
-        if (chartModel.buildRegression == false)
-        {
-            return chartModel;
-        }
-        let mappedSeries = chartModel.data
-            .map((value, key) => {
-                return [key, value || 0];
-            });
-
-        let regression;
-
-        switch (chartModel.regressionType)
-        {
-            case 'linear':
-                regression = ecStat.regression(
-                    'linear',
-                    mappedSeries
-                );
-                break;
-            case 'exponential':
-                regression = ecStat.regression(
-                    'exponential',
-                    mappedSeries
-                );
-                break;
-            case 'polynomial':
-            default:
-                regression = ecStat.regression(
-                    'polynomial',
-                    mappedSeries,
-                    this._regressionFactor
-                );
-                break;
-        }
-
-        this._regressionFormulaByName[chartModel.name] = regression.expression;
-
-        let formula = regression.expression
-            .replace('y = ', '')
-            .replace('x ', '*(x) ')
-            .replace('x^2', '*(x*x)')
-            .replace('x^3', '*(x*x*x)')
-            .replace('x^4', '*(x*x*x*x)')
-            .replace('x^5', '*(x*x*x*x*x)')
-            .replace('x^6', '*(x*x*x*x*x*x)')
-            .replace('x^7', '*(x*x*x*x*x*x*x)')
-            .replace('x^8', '*(x*x*x*x*x*x*x*x)')
-            .replace('x^9', '*(x*x*x*x*x*x*x*x*x)')
-            .replace('x^10', '*(x*x*x*x*x*x*x*x*x*x)')
-        ;
-        let lastDate = this._lastDate;
-        let lastFormulaResult = 0;
-
-        for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this._forecastInDays); i++) {
-            let tmpDate = new Date(lastDate);
-            tmpDate.setDate(tmpDate.getDate() + 1);
-            lastDate = this.formatDate(tmpDate);
-            let subFormula = formula.replace(/x/g, i.toString());
-            let formulaResult = eval(subFormula);
-
-            this._xAxisAssignment[lastDate] = i;
-            this._regressionDateList[i] = lastDate;
-
-            lastFormulaResult = formulaResult;
-            chartModel.data.push(Math.floor(formulaResult));
-        }
-    }
-
-    formatDate(date: Date)
-    {
-        let year = date.getFullYear();
-        let month: string|number = date.getMonth() + 1;
-        let day: string|number = date.getDate();
-
-        if (month < 10)
-        {
-            month = '0' + month.toString();
-        }
-
-        if (day < 10)
-        {
-            day = '0' + day.toString();
-        }
-
-        return year + '-' + month + '-' + day;
-    }
-
     getGrid() {
         return {
             left: '5%',
@@ -980,41 +469,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             bottom: '10%',
             top: '10%',
             containLabel: true
-        };
-    }
-
-    getToolbox() {
-        return {
-            show: false,
-            orient: 'vertical',
-            itemSize: 12,
-            itemGap: 10,
-            showTitle: true,
-            right: '15px',
-            feature: {
-                dataZoom: {
-                    yAxisIndex: 'none'
-                },
-                restore: {},
-                saveAsImage: {
-                    show: true,
-                    type: 'jpeg',
-                    title: 'save as image'
-                },
-                dataView: {
-                    show: true,
-                    title: 'show data'
-                },
-                //myToolX seems to be a pattern
-                myTool1: {
-                    show: true,
-                    title: 'Customize',
-                    icon: 'path://M432.45,595.444c0,2.177-4.661,6.82-11.305,6.82c-6.475,0-11.306-4.567-11.306-6.82s4.852-6.812,11.306-6.812C427.841,588.632,432.452,593.191,432.45,595.444L432.45,595.444z M421.155,589.876c-3.009,0-5.448,2.495-5.448,5.572s2.439,5.572,5.448,5.572c3.01,0,5.449-2.495,5.449-5.572C426.604,592.371,424.165,589.876,421.155,589.876L421.155,589.876z M421.146,591.891c-1.916,0-3.47,1.589-3.47,3.549c0,1.959,1.554,3.548,3.47,3.548s3.469-1.589,3.469-3.548C424.614,593.479,423.062,591.891,421.146,591.891L421.146,591.891zM421.146,591.891',
-                    onclick: () => {
-                        this.showModalDialog('#customToolBoxModal');
-                    }
-                },
-            }
         };
     }
 
@@ -1039,33 +493,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 return name + '<br>' + result.join('<br>');
             }
         };
-    }
-
-    showModalDialog(id)
-    {
-        // @ts-ignore
-        $(id).modal('show');
-    }
-
-    convertGeoData(data)
-    {
-        let res = [];
-
-        for (let i = 0; i < data.length; i++) {
-            if (typeof data[i] != 'undefined')
-            {
-                let geoCoord = this._geoCoordMap[data[i].name];
-                if (geoCoord) {
-                    res.push({
-                        name: data[i].name,
-                        value: geoCoord.concat(data[i].value),
-                        stat: data[i].stat
-                    });
-                }
-            }
-
-        }
-        return res;
     }
 
     destroy(): void {}

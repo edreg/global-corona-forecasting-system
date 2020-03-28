@@ -6,21 +6,13 @@ import {DateTimeService} from "../../service/date-time-service";
 import {CoronaStatInterface} from "../interface/corona-stat-interface";
 import {SeriesGeoInterface} from "../interface/series-geo-interface";
 
-enum RegressionFormulaBehavingType
-{
-    nonLowering = 'nonLowering',
-    gteZero = 'gteZero',
-}
-
-enum RegressionType
-{
+enum RegressionType {
     linear = 'linear',
     exponential = 'exponential',
     polynomial = 'polynomial',
 }
 
-export class RegressionAndDataService
-{
+export class RegressionAndDataService {
     private _dataResponseInterface: CoronaChartResponseInterface;
     private _forecastInDays: number;
     private _regressionDateList: {};
@@ -143,29 +135,27 @@ export class RegressionAndDataService
     buildRegression() {
         this.processResponseData();
         this.buildGeoSeriesData();
+        //this.calculateRegressions();
     }
 
-    processResponseData(): void
-    {
-        for (let date of this._dataResponseInterface.dateList)
-        {
+    processResponseData(): void {
+        for (let date of this._dataResponseInterface.dateList) {
             this._xAxisAssignment[date] = this._dataRowCount;
             this._dateList[this._dataRowCount] = date;
             this._chartDateList[this._dataRowCount] = date;
             this._lastDate = date;
+
 
             this._dataRowCount++;
         }
 
         let countrySelectionList = [];
 
-        for (let country of this._dataResponseInterface.countryList)
-        {
+        for (let country of this._dataResponseInterface.countryList) {
             this._countryById[country.id] = country;
-            countrySelectionList.push({ id: country.id, text: country.name, selected: false });
+            countrySelectionList.push({id: country.id, text: country.name, selected: false});
             let emptySeriesData = [];
-            for (let date of this._dataResponseInterface.dateList)
-            {
+            for (let date of this._dataResponseInterface.dateList) {
                 emptySeriesData.push({
                     date: date,
                     country: country,
@@ -185,8 +175,7 @@ export class RegressionAndDataService
             }
             let countryData = emptySeriesData;
 
-            if (this._dataResponseInterface.data[country.id])
-            {
+            if (this._dataResponseInterface.data[country.id]) {
                 this._statsPerCountry[country.id] = this._dataResponseInterface.data[country.id];
                 $.each(this._statsPerCountry[country.id], (key, value) => {
                     countryData[this._xAxisAssignment[value.date]] = value;
@@ -205,18 +194,21 @@ export class RegressionAndDataService
         for (let country of this._dataResponseInterface.countryList) {
             let lat = parseFloat(country.latitude.toString());
             let lng = parseFloat(country.longitude.toString());
-            this._geoCoordMap[country.name] = [lng, lat];
+            this._geoCoordMap[country.name] = [lng, lat];//todo geo service
         }
     }
 
-    buildGeoSeriesData()
-    {
+    buildGeoSeriesData() {
         let lastAmountTotalGeoStatPerCountry = {};
 
         let amountCases = 0;
         let amountInfected = 0;
         let amountHealed = 0;
         let amountDeath = 0;
+        let amountCasesNew = 0;
+        let amountInfectedNew = 0;
+        let amountHealedNew = 0;
+        let amountDeathNew = 0;
         let amountCasesPerPopulation = 0;
         let amountHealedPerPopulation = 0;
         let amountDeathPerPopulation = 0;
@@ -226,19 +218,19 @@ export class RegressionAndDataService
         let lastAmountInfectedGeoData = [];
         let lastAmountHealedGeoData = [];
         let lastAmountDeathGeoData = [];
+        let lastAmountCasesNewGeoData = [];
+        let lastAmountInfectedNewGeoData = [];
+        let lastAmountHealedNewGeoData = [];
+        let lastAmountDeathNewGeoData = [];
         let lastAmountCasesGeoDataPopulation = [];
         let lastAmountInfectedGeoDataPopulation = [];
         let lastAmountHealedGeoDataPopulation = [];
 
         let lastAmountDeathGeoDataPopulation = [];
-        let relativeAmountNewCases = 0;
         let doublingRateSeriesData = [];
-        let newCasesSeriesData = [];
 
-        for (let country of this._dataResponseInterface.countryList)
-        {
-            if (this._dataResponseInterface.data[country.id] && this._dataResponseInterface.data[country.id][this.selectedDate] && country.name !== 'World')
-            {
+        for (let country of this._dataResponseInterface.countryList) {
+            if (this._dataResponseInterface.data[country.id] && this._dataResponseInterface.data[country.id][this.selectedDate] && country.name !== 'World') {
                 lastAmountTotalGeoStatPerCountry[country.id] = this._dataResponseInterface.data[country.id][this.selectedDate];
             }
         }
@@ -252,25 +244,60 @@ export class RegressionAndDataService
             let deathPerPopulation = stat.amountDeath / perPopulation;
             let infectedPerPopulation = stat.amountInfected / perPopulation;
             let newCases = stat.amountTotal - stat.amountTotalTheDayBefore;
+            let newInfected = stat.amountInfected - stat.amountInfectedTheDayBefore;
+            let newHealed = stat.amountHealed - stat.amountHealedTheDayBefore;
+            let newDeath = stat.amountDeath - stat.amountDeathTheDayBefore;
 
-            if (amountCases < stat.amountTotal) { amountCases = stat.amountTotal; }
-            if (amountInfected < stat.amountInfected) {amountInfected = stat.amountInfected;}
-            if (amountHealed < stat.amountHealed) {amountHealed = stat.amountHealed;}
-            if (amountDeath < stat.amountDeath) {amountDeath = stat.amountDeath;}
-            if (relativeAmountNewCases < newCases) {relativeAmountNewCases = newCases;}
-            if (amountCasesPerPopulation < totalPerPopulation) {amountCasesPerPopulation = totalPerPopulation;}
-            if (amountHealedPerPopulation < healedPerPopulation) {amountHealedPerPopulation = healedPerPopulation;}
-            if (amountDeathPerPopulation < deathPerPopulation) {amountDeathPerPopulation = deathPerPopulation;}
-            if (amountInfectedPerPopulation < infectedPerPopulation) {amountInfectedPerPopulation = infectedPerPopulation;}
-            if (stat.doublingInfectionRate > 0 && doublingCasesRate < stat.doublingInfectionRate) {doublingCasesRate = stat.doublingInfectionRate;}
+            if (amountCases < stat.amountTotal) {
+                amountCases = stat.amountTotal;
+            }
+            if (amountInfected < stat.amountInfected) {
+                amountInfected = stat.amountInfected;
+            }
+            if (amountHealed < stat.amountHealed) {
+                amountHealed = stat.amountHealed;
+            }
+            if (amountDeath < stat.amountDeath) {
+                amountDeath = stat.amountDeath;
+            }
+            if (amountCasesNew < newCases) {
+                amountCasesNew = newCases;
+            }
+            if (amountInfectedNew < newInfected) {
+                amountInfectedNew = newInfected;
+            }
+            if (amountHealedNew < newHealed) {
+                amountHealedNew = newHealed;
+            }
+            if (amountDeathNew < newDeath) {
+                amountDeathNew = newDeath;
+            }
+
+            if (amountCasesPerPopulation < totalPerPopulation) {
+                amountCasesPerPopulation = totalPerPopulation;
+            }
+            if (amountHealedPerPopulation < healedPerPopulation) {
+                amountHealedPerPopulation = healedPerPopulation;
+            }
+            if (amountDeathPerPopulation < deathPerPopulation) {
+                amountDeathPerPopulation = deathPerPopulation;
+            }
+            if (amountInfectedPerPopulation < infectedPerPopulation) {
+                amountInfectedPerPopulation = infectedPerPopulation;
+            }
+            if (stat.doublingInfectionRate > 0 && doublingCasesRate < stat.doublingInfectionRate) {
+                doublingCasesRate = stat.doublingInfectionRate;
+            }
 
             lastAmountCasesGeoData.push({name: stat.country.name, value: stat.amountTotal, stat: stat});
             lastAmountInfectedGeoData.push({name: stat.country.name, value: stat.amountInfected, stat: stat});
             lastAmountHealedGeoData.push({name: stat.country.name, value: stat.amountHealed, stat: stat});
             lastAmountDeathGeoData.push({name: stat.country.name, value: stat.amountDeath, stat: stat});
-            newCasesSeriesData.push({name: stat.country.name, value: newCases, stat: stat});
-            if (stat.doublingInfectionRate > 0)
-            {
+            lastAmountCasesNewGeoData.push({name: stat.country.name, value: newCases, stat: stat});
+            lastAmountInfectedNewGeoData.push({name: stat.country.name, value: newInfected, stat: stat});
+            lastAmountHealedNewGeoData.push({name: stat.country.name, value: newHealed, stat: stat});
+            lastAmountDeathNewGeoData.push({name: stat.country.name, value: newDeath, stat: stat});
+            if (stat.doublingInfectionRate > 0) {
                 doublingRateSeriesData.push({name: stat.country.name, value: stat.doublingInfectionRate, stat: stat});
             }
             lastAmountCasesGeoDataPopulation.push({name: stat.country.name, value: (stat.amountTotal / perPopulation), stat: stat});
@@ -286,7 +313,7 @@ export class RegressionAndDataService
             data: lastAmountCasesGeoData,
             relativeAmount: amountCases,
             color: '#ffce1b',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: false
         });
         this._seriesGeoModelList.push({
@@ -294,31 +321,15 @@ export class RegressionAndDataService
             data: lastAmountInfectedGeoData,
             relativeAmount: amountCases,
             color: '#112aff',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: true
         });
         this._seriesGeoModelList.push({
             name: 'healed',
             data: lastAmountHealedGeoData,
             relativeAmount: amountHealed,
-            color: '#2a7a2d',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'new cases',
-            data: newCasesSeriesData,
-            relativeAmount: relativeAmountNewCases,
-            color: '#7a1345',
-            invertRelativeAmount: false,
-            selected: false
-        });
-        this._seriesGeoModelList.push({
-            name: 'doublingRateInfections',
-            data: doublingRateSeriesData,
-            relativeAmount: doublingCasesRate,
-            color: '#7a4e73',
-            invertRelativeAmount: true,
+            color: '#3bb93e',
+            regressionType: RegressionType.polynomial,
             selected: false
         });
         this._seriesGeoModelList.push({
@@ -326,15 +337,56 @@ export class RegressionAndDataService
             data: lastAmountDeathGeoData,
             relativeAmount: amountDeath,
             color: '#ff2e36',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: false
         });
+        this._seriesGeoModelList.push({
+            name: 'new cases',
+            data: lastAmountCasesNewGeoData,
+            relativeAmount: amountCasesNew,
+            color: '#a77d1a',
+            regressionType: RegressionType.polynomial,
+            selected: false
+        });
+        this._seriesGeoModelList.push({
+            name: 'new infected',
+            data: lastAmountInfectedNewGeoData,
+            relativeAmount: amountInfectedNew,
+            color: '#111f9c',
+            regressionType: RegressionType.polynomial,
+            selected: false
+        });
+        this._seriesGeoModelList.push({
+            name: 'new healed',
+            data: lastAmountHealedNewGeoData,
+            relativeAmount: amountHealedNew,
+            color: '#2a7a2d',
+            regressionType: RegressionType.polynomial,
+            selected: false
+        });
+        this._seriesGeoModelList.push({
+            name: 'new died',
+            data: lastAmountDeathNewGeoData,
+            relativeAmount: amountDeathNew,
+            color: '#912026',
+            regressionType: RegressionType.polynomial,
+            selected: false
+        });
+        this._seriesGeoModelList.push({
+            name: 'doublingRateInfections',
+            data: doublingRateSeriesData,
+            relativeAmount: doublingCasesRate,
+            color: '#7a4e73',
+            regressionType: RegressionType.linear,
+            selected: false
+        });
+
         this._seriesGeoModelList.push({
             name: 'cases/population',
             data: lastAmountCasesGeoDataPopulation,
             relativeAmount: amountCasesPerPopulation,
             color: '#c79a1b',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: false
         });
         this._seriesGeoModelList.push({
@@ -342,7 +394,7 @@ export class RegressionAndDataService
             data: lastAmountInfectedGeoDataPopulation,
             relativeAmount: amountInfectedPerPopulation,
             color: '#1011c7',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: false
         });
         this._seriesGeoModelList.push({
@@ -350,7 +402,7 @@ export class RegressionAndDataService
             data: lastAmountHealedGeoDataPopulation,
             relativeAmount: amountHealedPerPopulation,
             color: '#1d441f',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: false
         });
         this._seriesGeoModelList.push({
@@ -358,15 +410,124 @@ export class RegressionAndDataService
             data: lastAmountDeathGeoDataPopulation,
             relativeAmount: amountDeathPerPopulation,
             color: '#631219',
-            invertRelativeAmount: false,
+            regressionType: RegressionType.polynomial,
             selected: false
         });
     }
 
-    getRegression(chartModel: SeriesChartInterface)
-    {
-        if (chartModel.buildRegression == false)
-        {
+    calculateRegressions() {
+
+        let regressionModelList = {};
+        $.each(this.seriesDataByCountryId, (countryId, countryData) => {
+            // @ts-ignore
+            regressionModelList[countryId] = {};
+            let regressionData = {
+                amountTotal: [],
+                amountInfected: [],
+                amountHealed: [],
+                amountDeath: [],
+
+                amountTotalTheDayBefore: [],
+                amountInfectedTheDayBefore: [],
+                amountHealedTheDayBefore: [],
+                amountDeathTheDayBefore: [],
+
+                doublingTotalRate: [],
+                doublingInfectionRate: [],
+                doublingHealedRate: [],
+                doublingDeathRate: [],
+            };
+            let linearRegression = {
+                doublingTotalRate: [],
+                doublingInfectionRate: [],
+                doublingHealedRate: [],
+                doublingDeathRate: [],
+            };
+            let exampleStat:CoronaStatInterface;
+            $.each(countryData, (key, stat: CoronaStatInterface) => {
+                regressionData.amountTotal.push(stat.amountTotal);
+                regressionData.amountInfected.push(stat.amountInfected);
+                regressionData.amountHealed.push(stat.amountHealed);
+                regressionData.amountDeath.push(stat.amountDeath);
+                regressionData.amountTotalTheDayBefore.push(stat.amountTotalTheDayBefore);
+                regressionData.amountInfectedTheDayBefore.push(stat.amountInfectedTheDayBefore);
+                regressionData.amountHealedTheDayBefore.push(stat.amountHealedTheDayBefore);
+                regressionData.amountDeathTheDayBefore.push(stat.amountDeathTheDayBefore);
+                regressionData.doublingTotalRate.push(stat.doublingTotalRate);
+                regressionData.doublingInfectionRate.push(stat.doublingInfectionRate);
+                regressionData.doublingHealedRate.push(stat.doublingHealedRate);
+                regressionData.doublingDeathRate.push(stat.doublingDeathRate);
+                exampleStat = stat;
+            });
+            exampleStat.amountTotal = 0;
+            exampleStat.amountInfected = 0;
+            exampleStat.amountHealed = 0;
+            exampleStat.amountDeath = 0;
+            exampleStat.amountTotalTheDayBefore = 0;
+            exampleStat.amountInfectedTheDayBefore = 0;
+            exampleStat.amountHealedTheDayBefore = 0;
+            exampleStat.amountDeathTheDayBefore = 0;
+            exampleStat.doublingTotalRate = 0;
+            exampleStat.doublingInfectionRate = 0;
+            exampleStat.doublingHealedRate = 0;
+            exampleStat.doublingDeathRate = 0;
+            $.each(regressionData, (name, data: Array<number>) => {
+                let mappedSeries = data.map((value, key) => { return [key, value || 0]; });
+                let regression;
+                if (typeof linearRegression[name] !== 'undefined') {
+                    regression = ecStat.regression('linear', mappedSeries);
+                } else {
+                    regression = ecStat.regression('polynomial', mappedSeries, this._regressionFactor);
+                }
+                this._regressionFormulaByName[name] = regression.expression;
+                let formula = regression.expression
+                    .replace('y = ', '')
+                    .replace('x ', '*(x) ')
+                    .replace('x^2', '*(x*x)')
+                    .replace('x^3', '*(x*x*x)')
+                    .replace('x^4', '*(x*x*x*x)')
+                    .replace('x^5', '*(x*x*x*x*x)')
+                    .replace('x^6', '*(x*x*x*x*x*x)')
+                    .replace('x^7', '*(x*x*x*x*x*x*x)')
+                    .replace('x^8', '*(x*x*x*x*x*x*x*x)')
+                    .replace('x^9', '*(x*x*x*x*x*x*x*x*x)')
+                    .replace('x^10', '*(x*x*x*x*x*x*x*x*x*x)')
+                ;
+                let lastDate = this._lastDate;
+
+                for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this._forecastInDays); i++) {
+                    let tmpDate = new Date(lastDate);
+                    tmpDate.setDate(tmpDate.getDate() + 1);
+                    lastDate = this._dateService.formatDate(tmpDate);
+                    let subFormula = formula.replace(/x/g, i.toString());
+                    let formulaResult = eval(subFormula);
+
+                    this._xAxisAssignment[lastDate] = i;
+                    this._regressionDateList[i] = lastDate;
+
+                    //regressionData[name].push(Math.floor(formulaResult));
+                    if (typeof regressionModelList[countryId][i] === 'undefined')
+                    {
+                        // @ts-ignore
+                        regressionModelList[countryId][i] = $.extend(true, {}, exampleStat);
+                    }
+                    // @ts-ignore
+                    regressionModelList[countryId][i].date = lastDate;
+                    if (typeof linearRegression[name] !== 'undefined') {
+                        // @ts-ignore
+                        regressionModelList[countryId][i][name] = formulaResult;
+                    } else {
+                        // @ts-ignore
+                        regressionModelList[countryId][i][name] = Math.floor(formulaResult);
+                    }
+                }
+            });
+        });
+        console.log(regressionModelList);
+    }
+
+    getRegression(chartModel: SeriesChartInterface) {
+        if (chartModel.buildRegression == false) {
             return chartModel;
         }
         let mappedSeries = chartModel.data
@@ -376,8 +537,7 @@ export class RegressionAndDataService
 
         let regression;
 
-        switch (chartModel.regressionType)
-        {
+        switch (chartModel.regressionType) {
             case 'linear':
                 regression = ecStat.regression(
                     'linear',
@@ -429,7 +589,11 @@ export class RegressionAndDataService
             this._regressionDateList[i] = lastDate;
 
             lastFormulaResult = formulaResult;
-            chartModel.data.push(Math.floor(formulaResult));
+            if (chartModel.regressionType == 'linear') {
+                chartModel.data.push(formulaResult);
+            } else {
+                chartModel.data.push(Math.floor(formulaResult));
+            }
         }
     }
 }
