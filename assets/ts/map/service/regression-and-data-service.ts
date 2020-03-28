@@ -583,10 +583,14 @@ export class RegressionAndDataService {
             tmpDate.setDate(tmpDate.getDate() + 1);
             lastDate = this._dateService.formatDate(tmpDate);
             let subFormula = formula.replace(/x/g, i.toString());
-            let formulaResult = eval(subFormula);
+            let formulaResult = eval(subFormula) > 0 ?  eval(subFormula) : 0;
 
             this._xAxisAssignment[lastDate] = i;
             this._regressionDateList[i] = lastDate;
+            if (lastFormulaResult > formulaResult && chartModel.regressionType !== 'linear')
+            {
+                formulaResult = lastFormulaResult * 1.002;
+            }
 
             lastFormulaResult = formulaResult;
             if (chartModel.regressionType == 'linear') {
