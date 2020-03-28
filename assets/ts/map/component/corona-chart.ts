@@ -368,7 +368,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             grid: {
                 left: '11%',
                 right: '15%',
-                bottom: '5%',
+                bottom: '7%',
                 top: '10%',
                 containLabel: true
             },
@@ -379,6 +379,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             }],
             xAxis: {
                 type: 'category',
+                name: 'date',
                 splitLine: {
                     lineStyle: {
                         type: 'dashed'
@@ -387,7 +388,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 smooth: true,
                 axisLine: {onZero: true},
                 axisLabel: {
-                    rotate: 270,
+                    rotate: 315,
                     formatter: (value) =>
                     {
                         return value;
