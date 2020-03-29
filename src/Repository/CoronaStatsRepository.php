@@ -30,6 +30,7 @@ class CoronaStatsRepository extends ServiceEntityRepository
     public function getFindAllQuery(?DateTime $dateValue = null) : Query
     {
         $qb = $this->createQueryBuilder('coronaStats', 'coronaStats.id')->join('coronaStats.country', 'country');
+        $qb->select();
         $latestStat = $this->getLatestDateStat();
 
         if ($dateValue instanceof DateTime)

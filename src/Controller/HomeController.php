@@ -91,18 +91,19 @@ class HomeController extends AbstractController
 
 
         $query = $coronaStatsRepository->getFindAllQuery($dateToQueryRepository);
-        $pagination = $paginator->paginate(
-            $query, /* query NOT result */
-            $request->query->getInt('page', 1), /*page number*/
-            200 /*limit per page*/
-        );
+//        $pagination = $paginator->paginate(
+//            $query, /* query NOT result */
+//            $request->query->getInt('page', 1), /*page number*/
+//            200 /*limit per page*/
+//        );
         //$form = $this->createForm(UploadCoronaStatsType::class)
 
         return $this->render(
             'map/index.html.twig',
             [
                 'test'     => 'MapController',
-                'pagination' => $pagination,
+                'statList' => $query->getResult(),
+//                'pagination' => $pagination,
                 'dateValue' => $dateToQueryRepository->format($datePickerFormat),
                 //'form'     => $form->createView(),
                 'configurationId' => 'corona-chart-config',
