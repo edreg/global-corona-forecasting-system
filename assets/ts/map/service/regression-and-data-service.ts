@@ -587,10 +587,10 @@ export class RegressionAndDataService {
 
             this._xAxisAssignment[lastDate] = i;
             this._regressionDateList[i] = lastDate;
-            if (lastFormulaResult > formulaResult && chartModel.regressionType !== 'linear')
-            {
-                formulaResult = lastFormulaResult * 1.002;
-            }
+            // if (lastFormulaResult > formulaResult && chartModel.regressionType !== 'linear')
+            // {
+            //     formulaResult = lastFormulaResult * 1.002;
+            // }
 
             lastFormulaResult = formulaResult;
             if (chartModel.regressionType == 'linear') {

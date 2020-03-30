@@ -31,7 +31,7 @@ class UpdateService
         $copyEnvCommand = 'cd ' . $this->projectDirectory . ' && cp .env.prod .env';
         $process = Process::fromShellCommandline(
             'cd ' . $this->projectDirectory . ' && git pull && ' . $copyHtaccessCommand . ' && '
-            . $copyEnvCommand . ' && composer update && yarn encore prod'
+            . $copyEnvCommand . ' && composer install && yarn encore prod'
         );
         $process->run();
 
