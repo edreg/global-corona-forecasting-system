@@ -211,6 +211,7 @@ class AquireDataService
         $countrySkipList = $this->getCountryMapping();
         $countrySkipList['Cruise Ship'] = true;
         $countrySkipList['Diamond Princess'] = true;
+        $countrySkipList['MS Zaandam'] = true;
 
 
         /** @var Country $country */

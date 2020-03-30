@@ -13,10 +13,9 @@ export class DataTableService
     initTable(tableId: string)
     {
         let tableOptions = {
-           // columns: this.dataMatrixColumns,
+           // columns: this.Columns,
             // rowCallback: rowCallback,
-            //dom: '<"datatable-control header row"<"datatable-control-left col-md-6"lip><"datatable-control-right col-md-6"f>>rt<"datatable-control footer"<"datatable-control-left"lip><"datatable-control-right"f>><"clear">',
-           // data: this.dataMatrix,
+           // data: this.data,
             pageLength: 25,
             paging: true,
             pagingType: 'simple_numbers',
@@ -28,13 +27,8 @@ export class DataTableService
             fixedHeader: true,
             responsive: true,
             colReorder: true,
-            initComplete: function ()
-            {
-               // $(this).show();
-            },
-            drawCallback: function ()
-            {
-            },
+            initComplete: () => { /*$(this).show();*/ },
+            drawCallback: () => { },
         };
         // @ts-ignore
         $('#' + tableId).DataTable(tableOptions);
