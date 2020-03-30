@@ -84,8 +84,6 @@
                         <p>
                             Symfony, Doctrine, Webpack, Apache Echarts, ecomfe/echarts-stat, bootstrap
                         </p>
-
-
                     </div>
                     <div class="col-md-4">
                     </div>
@@ -162,7 +160,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for coronaStats in pagination %}
+                    {% for coronaStats in statList %}
                         <tr {% if loop.index is odd %}class="color"{% endif %}>
                             {#                            <td>{{ coronaStats.id }}</td>#}
                             <td>{{ coronaStats.country.name }}</td>
