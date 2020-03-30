@@ -269,6 +269,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             let amountInfectedGeoDataPopulation = [];
             let amountHealedGeoDataPopulation = [];
             let amountDeathGeoDataPopulation = [];
+            let amountMortality = [];
             let country: CountryInterface = this._dataService.countryById[countryId];
             let perPopulation = (country.population) || 1;
             chartNameList.push(country.name);
@@ -283,6 +284,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 amountInfectedNew.push(stat.amountInfected - stat.amountInfectedTheDayBefore);
                 amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
                 amountDiedNew.push(stat.amountDeath - stat.amountDeathTheDayBefore);
+                amountMortality.push(100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0));
                 amountCasesGeoDataPopulation.push(stat.amountTotal / perPopulation);
                 amountInfectedGeoDataPopulation.push(stat.amountInfected / perPopulation);
                 amountHealedGeoDataPopulation.push(stat.amountHealed / perPopulation);
@@ -306,11 +308,12 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 tempValueAmountInfected = amountInfectedByNewInfections[key];
             });
             newInfectedSeriesModel.buildRegression = false;
-            this._seriesChartModelList.push({color: '#e1d423', selected: true, countryName: country.name, data: amountInfectedByNewInfections, name: 'cases', buildRegression: true, regressionType: 'polynomial'});
+            this._seriesChartModelList.push({color: '#193ce1', selected: true, countryName: country.name, data: amountCases, name: 'total', buildRegression: true, regressionType: 'polynomial'});
+            this._seriesChartModelList.push({color: '#e1d423', selected: false, countryName: country.name, data: amountInfectedByNewInfections, name: 'cases', buildRegression: false, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#cbc42a', selected: false, countryName: country.name, data: amountCasesNew, name: 'new cases', buildRegression: true, regressionType: 'polynomial'});
             //this._seriesChartModelList.push({color: '#a6a12e', selected: false, countryName: country.name, data: amountCasesGeoDataPopulation, name: 'cases/population', buildRegression: true, regressionType: ''});
             this._seriesChartModelList.push({color: '#7832b2', selected: false, countryName: country.name, data: doublingInfectionRate, name: 'doubling infection rate', buildRegression: true, regressionType: 'linear'});
-            this._seriesChartModelList.push({color: '#193ce1', selected: false, countryName: country.name, data: amountCases, name: 'infected', buildRegression: true, regressionType: 'polynomial'});
+            this._seriesChartModelList.push({color: '#193ce1', selected: false, countryName: country.name, data: amountInfected, name: 'infected', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push(newInfectedSeriesModel);
             //this._seriesChartModelList.push({color: '#2e3da2', selected: false, countryName: country.name, data: amountInfectedGeoDataPopulation, name: 'infected/population', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#2bd62c', selected: false, countryName: country.name, data: amountHealed, name: 'healed', buildRegression: true, regressionType: 'polynomial'});
@@ -318,7 +321,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             //this._seriesChartModelList.push({color: '#2b9c2e', selected: false, countryName: country.name, data: amountHealedGeoDataPopulation, name: 'healed/population', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#cb020c', selected: false, countryName: country.name, data: amountDied, name: 'died', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#bc020a', selected: false, countryName: country.name, data: amountDiedNew, name: 'new died', buildRegression: true, regressionType: 'polynomial'});
-            //this._seriesChartModelList.push({color: '#9c020a', selected: false, countryName: country.name, data: amountDiedNew, name: 'died/population', buildRegression: true, regressionType: 'polynomial'});
+            //this._seriesChartModelList.push({color: '#2c0209', selected: false, countryName: country.name, data: amountMortality, name: 'mortality', buildRegression: true, regressionType: 'polynomial'});
 
             if (buildLegend)
             {

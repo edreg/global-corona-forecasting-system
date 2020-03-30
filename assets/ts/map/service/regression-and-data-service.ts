@@ -214,6 +214,7 @@ export class RegressionAndDataService {
         let amountDeathPerPopulation = 0;
         let amountInfectedPerPopulation = 0;
         let doublingCasesRate = 0;
+        let mortalityCasesRate = 0;
         let lastAmountCasesGeoData = [];
         let lastAmountInfectedGeoData = [];
         let lastAmountHealedGeoData = [];
@@ -228,6 +229,7 @@ export class RegressionAndDataService {
 
         let lastAmountDeathGeoDataPopulation = [];
         let doublingRateSeriesData = [];
+        let mortalityRateSeriesData = [];
 
         for (let country of this._dataResponseInterface.countryList) {
             if (this._dataResponseInterface.data[country.id] && this._dataResponseInterface.data[country.id][this.selectedDate] && country.name !== 'World') {
@@ -288,6 +290,10 @@ export class RegressionAndDataService {
             if (stat.doublingInfectionRate > 0 && doublingCasesRate < stat.doublingInfectionRate) {
                 doublingCasesRate = stat.doublingInfectionRate;
             }
+            let mortality = 100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0);
+            if (mortality > 0 && mortalityCasesRate < mortality) {
+                mortalityCasesRate = mortality;
+            }
 
             lastAmountCasesGeoData.push({name: stat.country.name, value: stat.amountTotal, stat: stat});
             lastAmountInfectedGeoData.push({name: stat.country.name, value: stat.amountInfected, stat: stat});
@@ -299,6 +305,10 @@ export class RegressionAndDataService {
             lastAmountDeathNewGeoData.push({name: stat.country.name, value: newDeath, stat: stat});
             if (stat.doublingInfectionRate > 0) {
                 doublingRateSeriesData.push({name: stat.country.name, value: stat.doublingInfectionRate, stat: stat});
+            }
+            if (mortality > 0) {
+                //amountMortality.push(100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0));
+                mortalityRateSeriesData.push({name: stat.country.name, value: mortality, stat: stat});
             }
             lastAmountCasesGeoDataPopulation.push({name: stat.country.name, value: (stat.amountTotal / perPopulation), stat: stat});
             lastAmountInfectedGeoDataPopulation.push({name: stat.country.name, value: (stat.amountInfected / perPopulation), stat: stat});
@@ -409,6 +419,14 @@ export class RegressionAndDataService {
             name: 'death/population',
             data: lastAmountDeathGeoDataPopulation,
             relativeAmount: amountDeathPerPopulation,
+            color: '#631219',
+            regressionType: RegressionType.polynomial,
+            selected: false
+        });
+        this._seriesGeoModelList.push({
+            name: 'mortality',
+            data: mortalityRateSeriesData,
+            relativeAmount: mortalityCasesRate,
             color: '#631219',
             regressionType: RegressionType.polynomial,
             selected: false
@@ -583,7 +601,7 @@ export class RegressionAndDataService {
             tmpDate.setDate(tmpDate.getDate() + 1);
             lastDate = this._dateService.formatDate(tmpDate);
             let subFormula = formula.replace(/x/g, i.toString());
-            let formulaResult = eval(subFormula) > 0 ?  eval(subFormula) : 0;
+            let formulaResult = eval(subFormula) > 0 ? eval(subFormula) : 0;
 
             this._xAxisAssignment[lastDate] = i;
             this._regressionDateList[i] = lastDate;

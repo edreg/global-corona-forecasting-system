@@ -112,6 +112,7 @@ export class GeoMapService
 
                     if (typeof stats !== 'undefined')
                     {
+                        let mortality = 100 * (stats.amountTotal > 0 ? (stats.amountDeath / stats.amountTotal) : 0);
                         result += '<br>'
                             + 'cases: <strong>' + stats.amountTotal + '</strong>' + '<br>'
                             + 'infected: <strong>' + stats.amountInfected + '</strong>' + '<br>'
@@ -127,6 +128,7 @@ export class GeoMapService
                             + 'doubling infected rate: <strong>' + parseFloat(stats.doublingInfectionRate).toFixed(1) + '</strong>' + '<br>'
                             + 'doubling healed rate: <strong>' + parseFloat(stats.doublingHealedRate).toFixed(1) + '</strong>' + '<br>'
                             + 'doubling death rate: <strong>' + parseFloat(stats.doublingDeathRate).toFixed(1) + '</strong>' + '<br>'
+                            + 'mortality: <strong>' + parseFloat(mortality.toString()).toFixed(1) + '%</strong>' + '<br>'
                         ;
                     }
 
