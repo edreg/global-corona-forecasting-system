@@ -548,10 +548,18 @@ export class RegressionAndDataService {
         if (chartModel.buildRegression == false) {
             return chartModel;
         }
-        let mappedSeries = chartModel.data
-            .map((value, key) => {
-                return [key, value || 0];
-            });
+
+        let mappedSeries = chartModel.data.map((value, key) => { return [key, value || 0]; });
+        let regressionData = [];
+        let positiveValueFound = false;
+        //start with the first non zero value
+        for (let i = 0; i < chartModel.data.length; i++) {
+            if (positiveValueFound || chartModel.data[i] > 0)
+            {
+                regressionData.push([i, chartModel.data[i]]);
+                positiveValueFound = true;
+            }
+        }
 
         let regression;
 
@@ -572,7 +580,7 @@ export class RegressionAndDataService {
             default:
                 regression = ecStat.regression(
                     'polynomial',
-                    mappedSeries,
+                    regressionData,
                     this._regressionFactor
                 );
                 break;

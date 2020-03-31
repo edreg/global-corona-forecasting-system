@@ -178,7 +178,7 @@ class CoronaStats
         return $result;
     }
 
-    public function getDoublingInfectionRateInDays()
+    public function getDoublingTotalRateInDays()
     {
         $doublingRateInDays = 0;
         $amountOfTheDayBefore = $this->getAmountTheDayBefore();

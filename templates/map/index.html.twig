@@ -150,7 +150,7 @@
                             <th>{{ 'Infections'|trans }}</th>
                             <th>{{ 'New infections'|trans }}</th>
                             <th>{{ 'Mortality'|trans }}</th>
-                            <th>{{ 'Doubling rate of infections in days'|trans }}</th>
+                            <th>{{ 'Doubling rate of cases in days'|trans }}</th>
                             <th>{{ 'Healed'|trans }}</th>
                             <th>{{ 'New healed'|trans }}</th>
                             <th>{{ 'Doubling rate of healed in days'|trans }}</th>
@@ -168,7 +168,7 @@
                             <td>{{ coronaStats.amount|number_format(0, '.', ',') }}</td>
                             <td>{{ (coronaStats.amount - coronaStats.getAmountTheDayBefore)|number_format(0, '.', ',') }}</td>
                             <td>{% if coronaStats.amount > 0 %}{{ (100 * (coronaStats.amountDeath/coronaStats.amount))|number_format(2, '.', ',') }} {% else %} 0 {% endif %}</td>
-                            <td>{{ coronaStats.getDoublingInfectionRateInDays|number_format(2, '.', ',') }}</td>
+                            <td>{{ coronaStats.getDoublingTotalRateInDays|number_format(2, '.', ',') }}</td>
                             <td>{{ coronaStats.amountHealed|number_format(0, '.', ',') }}</td>
                             <td>{{ (coronaStats.amountHealed - coronaStats.getAmountHealedTheDayBefore)|number_format(0, '.', ',') }}</td>
                             <td>{{ coronaStats.getDoublingHealedRateInDays|number_format(2, '.', ',') }}</td>
