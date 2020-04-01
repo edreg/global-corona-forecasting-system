@@ -25,14 +25,9 @@ class UpdateService
         $this->logger = $logger;
     }
 
-    public function update() : void
+    public function updateYarn() : void
     {
-        $copyHtaccessCommand = 'cd ' . $this->projectDirectory . 'public && cp .htaccess.prod .htaccess';
-
-        $process = Process::fromShellCommandline(
-            'cd ' . $this->projectDirectory . ' && git pull && cp .env.prod .env && ' . $copyHtaccessCommand
-            . ' && cd ' . $this->projectDirectory . ' && composer install'
-        );
+        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . ' && yarn encore prod');
         $process->run();
 
         while ($process->isRunning())
@@ -43,9 +38,14 @@ class UpdateService
         $this->logger->info($process->getOutput());
     }
 
-    public function updateYarn() : void
+    public function update() : void
     {
-        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . 'public && yarn encore prod');
+        $copyHtaccessCommand = 'cd ' . $this->projectDirectory . 'public && cp .htaccess.prod .htaccess';
+
+        $process = Process::fromShellCommandline(
+            'cd ' . $this->projectDirectory . ' && git pull && cp .env.prod .env && ' . $copyHtaccessCommand
+            . ' && cd ' . $this->projectDirectory . ' && composer install'
+        );
         $process->run();
 
         while ($process->isRunning())
