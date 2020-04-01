@@ -28,11 +28,24 @@ class UpdateService
     public function update() : void
     {
         $copyHtaccessCommand = 'cd ' . $this->projectDirectory . 'public && cp .htaccess.prod .htaccess';
-        $copyEnvCommand = 'cd ' . $this->projectDirectory . ' && cp .env.prod .env';
+
         $process = Process::fromShellCommandline(
-            'cd ' . $this->projectDirectory . ' && git pull && ' . $copyHtaccessCommand . ' && '
-            . $copyEnvCommand . ' && composer install && yarn encore prod'
+            'cd ' . $this->projectDirectory . ' && git pull && cp .env.prod .env && ' . $copyHtaccessCommand
+            . ' && cd ' . $this->projectDirectory . ' && composer install'
         );
+        $process->run();
+
+        while ($process->isRunning())
+        {
+            //wait
+        }
+
+        $this->logger->info($process->getOutput());
+    }
+
+    public function updateYarn() : void
+    {
+        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . 'public && yarn encore prod');
         $process->run();
 
         while ($process->isRunning())

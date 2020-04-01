@@ -190,6 +190,23 @@ class HomeController extends AbstractController
     }
 
     /**
+     * @Route("/update-yarn", name="update_yarn")
+     *
+     * @param \App\Domain\Update\UpdateService $updateService
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function updateYarn(UpdateService $updateService) : Response
+    {
+        if ($this->isGranted('ROLE_ADMIN'))
+        {
+            $updateService->updateYarn();
+        }
+
+        return $this->redirectToRoute('home');
+    }
+
+    /**
      * @Route("/home", name="home")
      */
     public function home() : Response
