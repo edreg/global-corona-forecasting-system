@@ -460,6 +460,12 @@ export class RegressionAndDataService {
                 doublingHealedRate: [],
                 doublingDeathRate: [],
             };
+            let notSinkingRegression = {
+                amountTotal: [],
+                amountInfected: [],
+                amountHealed: [],
+                amountDeath: [],
+            };
             let aStat: CoronaStatInterface;
             $.each(countryData, (key, stat: CoronaStatInterface) => {
                 regressionData.amountTotal.push(stat.amountTotal);
@@ -502,6 +508,7 @@ export class RegressionAndDataService {
                         positiveValueFound = true;
                     }
                 }
+
                 if (typeof linearRegression[name] !== 'undefined') {
                     regression = ecStat.regression('linear', regressionData);
                 } else {
@@ -509,6 +516,7 @@ export class RegressionAndDataService {
                 }
                 this._regressionFormulaByName[name] = regression.expression;
                 let formula = this.getRegressionFormula(regression);
+                let lastFormulaResult = 0;
 
                 for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
                     let tmpDate = new Date(lastDate);
@@ -516,6 +524,11 @@ export class RegressionAndDataService {
                     lastDate = this._dateService.formatDate(tmpDate);
                     let subFormula = formula.replace(/x/g, i.toString());
                     let formulaResult = eval(subFormula);
+
+                    if (formulaResult < 0)
+                    {
+                        formulaResult = 0;
+                    }
 
                     this._xAxisAssignment[lastDate] = i;
 
@@ -531,6 +544,10 @@ export class RegressionAndDataService {
                             this._regressionModelList[countryId][i]['amountDeathTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountDeath'];
                         }
                     }
+                    if (typeof notSinkingRegression[name] !== 'undefined' && lastFormulaResult > formulaResult) {
+                        formulaResult = lastFormulaResult;
+                    }
+                    lastFormulaResult = formulaResult;
                     // @ts-ignore
                     this._regressionModelList[countryId][i].date = lastDate;
                     if (typeof linearRegression[name] !== 'undefined') {

@@ -44,8 +44,21 @@ class UpdateService
 
         $process = Process::fromShellCommandline(
             'cd ' . $this->projectDirectory . ' && git pull && cp .env.prod .env && ' . $copyHtaccessCommand
-            . ' && cd ' . $this->projectDirectory . ' && composer install && php bin/console cache:clear'
+            . ' && cd ' . $this->projectDirectory . ' && composer install'
         );
+        $process->run();
+
+        while ($process->isRunning())
+        {
+            //wait
+        }
+
+        $this->logger->info($process->getOutput());
+    }
+
+    public function cacheClear() : void
+    {
+        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . ' && php bin/console cache:clear');
         $process->run();
 
         while ($process->isRunning())

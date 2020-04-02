@@ -207,6 +207,23 @@ class HomeController extends AbstractController
     }
 
     /**
+     * @Route("/cache-clear", name="cache-clear")
+     *
+     * @param \App\Domain\Update\UpdateService $updateService
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function cacheClear(UpdateService $updateService) : Response
+    {
+        if ($this->isGranted('ROLE_ADMIN'))
+        {
+            $updateService->cacheClear();
+        }
+
+        return $this->redirectToRoute('home');
+    }
+
+    /**
      * @Route("/home", name="home")
      */
     public function home() : Response

@@ -115,7 +115,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
         this._dataTableService.selectedDateDataIndex = this._dataService.getDataPositionByDate(this._dataService.selectedDate);
         this._dataTableService.regressionModelList = this._dataService.regressionModelList;
-        this._dataTableService.renewTableView();
+        this._dataTableService.buildTable();
         this._chartPerCountry.on('legendselectchanged', (params) => {
             this._selectedChartLegend = params.selected;
         });
@@ -202,7 +202,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             {
                 this._dataTableService.selectedDateDataIndex = this._dataService.getDataPositionByDate(this._dataService.selectedDate);
                 this._dataTableService.regressionModelList = this._dataService.regressionModelList;
-                this._dataTableService.renewTableView();
+                this._dataTableService.buildTable();
             }
 
         });

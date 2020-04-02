@@ -9,6 +9,12 @@ body {
             //height: 10em;
             li.nav-item {
                 width: 10%;
+                padding: 0 0 0 0;
+                text-align: center;
+                a {
+                    padding: 15px;
+                    font-weight: bolder;
+                }
             }
         }
 
