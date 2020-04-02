@@ -32,6 +32,7 @@ import {RegressionAndDataService} from "../service/regression-and-data-service";
 import {DateTimeService} from "../../service/date-time-service";
 import {GeoMapService} from "../service/geo-map-service";
 import {DataTableService} from "../../service/data-table-service";
+import {LoadingLayerHelper} from "../../service/loading-layer-helper";
 
 export class CoronaChart implements InitializableInterface, DestroyableInterface {
 
@@ -83,6 +84,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     }
 
     initChart(): void {
+        LoadingLayerHelper.show();
         AjaxService.ajaxRequest(this._settings.jsonDataUrl, []).done((response: CoronaChartResponseInterface) => {
             //console.log($.extend(true, {}, response));
             this._chartResponseInterface = response;
@@ -101,6 +103,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             return 'unknown error';
         })
         .then(() => {
+            LoadingLayerHelper.hide();
         });
     }
 
@@ -180,6 +183,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         dateLabel.text(new Date((lastDate) * 1000).toDateString());
 
         rangeControl.off('input change').on("input change", (event) => {
+            LoadingLayerHelper.show();
             let val = $(event.target).val();
             let timeStamp = parseInt(val.toString());
             let date = new Date(timeStamp * 1000);
@@ -204,15 +208,14 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 this._dataTableService.regressionModelList = this._dataService.regressionModelList;
                 this._dataTableService.buildTable();
             }
-
+            LoadingLayerHelper.hide();
         });
     }
 
     rebuildCharts()
     {
         this._chartPerCountry.setOption(this.getChartPerCountryOptions(), true);
-        this._dataService.buildGeoSeriesData();
-        this._geoChart.setOption(this._geoMapService.getGeoChartOptions(this._dataService.seriesGeoModelList), true);
+        this.rebuildGeoMap();
         this.fireRoamingEvents();
     }
 
@@ -226,19 +229,23 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
     {
         let rangeControl = $('input#polynomial-coefficients-range-control');
         rangeControl.on("change", (event) => {
+            LoadingLayerHelper.show();
             let val = $(event.target).val();
             this._dataService.regressionFactor = (parseInt(val.toString()));
             this._dataService.triggerRegressionRecalculation = true;
             this.rebuildCharts();
+            LoadingLayerHelper.hide();
         }).val(this._dataService.regressionFactor);
 
         let forecastControl = $('input#forecast-days-range-control');
         forecastControl.on("change", (event) => {
+            LoadingLayerHelper.show();
             let val = $(event.target).val();
             this._dataService.forecastInDays = (parseInt(val.toString()));
             this.buildDateRangeConfigs();
             this._dataService.triggerRegressionRecalculation = true;
             this.rebuildCharts();
+            LoadingLayerHelper.hide();
         }).val(this._dataService.forecastInDays);
     }
 
@@ -279,47 +286,45 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             let amountHealed = [];
             let amountDied = [];
             let amountCasesNew = [];
-            let amountInfectedNew = [];
             let amountHealedNew = [];
             let amountDiedNew = [];
-            let amountCasesGeoDataPopulation = [];
-            let amountInfectedGeoDataPopulation = [];
-            let amountHealedGeoDataPopulation = [];
-            let amountDeathGeoDataPopulation = [];
+            // let amountCasesGeoDataPopulation = [];
+            // let amountInfectedGeoDataPopulation = [];
+            // let amountHealedGeoDataPopulation = [];
+            // let amountDeathGeoDataPopulation = [];
             let amountMortality = [];
             let country: CountryInterface = this._dataService.countryById[countryId];
-            let perPopulation = (country.population) || 1;
+            //let perPopulation = (country.population) || 1;
             chartNameList.push(country.name);
 
             $.each(this._dataService.regressionModelList[countryId], (key:number, stat:CoronaStatInterface) => {
                 if (key <= this._dataService.getLastDateWithForecastDataPosition())
                 {
-                    doublingCasesRate.push(stat.doublingTotalRate);
                     amountCases.push(stat.amountTotal);
-                    amountInfected.push(stat.amountInfected);
-                    amountHealed.push(stat.amountHealed);
-                    amountDied.push(stat.amountDeath);
                     amountCasesNew.push(stat.amountTotal - stat.amountTotalTheDayBefore);
-                    amountInfectedNew.push(stat.amountInfected - stat.amountInfectedTheDayBefore);
-                    amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
-                    amountDiedNew.push(stat.amountDeath - stat.amountDeathTheDayBefore);
+                    amountInfected.push(stat.amountInfected);
                     amountMortality.push((stat.amountTotal > 0 ? 100 * (stat.amountDeath / stat.amountTotal) : 0));
-                    amountCasesGeoDataPopulation.push(stat.amountTotal / perPopulation);
-                    amountInfectedGeoDataPopulation.push(stat.amountInfected / perPopulation);
-                    amountHealedGeoDataPopulation.push(stat.amountHealed / perPopulation);
-                    amountDeathGeoDataPopulation.push(stat.amountDeath / perPopulation);
+                    doublingCasesRate.push(stat.doublingTotalRate);
+                    amountHealed.push(stat.amountHealed);
+                    amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
+                    amountDied.push(stat.amountDeath);
+                    amountDiedNew.push(stat.amountDeath - stat.amountDeathTheDayBefore);
+                    // amountCasesGeoDataPopulation.push(stat.amountTotal / perPopulation);
+                    // amountInfectedGeoDataPopulation.push(stat.amountInfected / perPopulation);
+                    // amountHealedGeoDataPopulation.push(stat.amountHealed / perPopulation);
+                    // amountDeathGeoDataPopulation.push(stat.amountDeath / perPopulation);
                 }
             });
 
             this._seriesChartModelList.push({color: '#193ce1', selected: true, countryName: country.name, data: amountCases, name: 'total', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#e1d423', selected: false, countryName: country.name, data: amountInfectedNew, name: 'active cases', buildRegression: false, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#cbc42a', selected: false, countryName: country.name, data: amountCasesNew, name: 'new cases', buildRegression: true, regressionType: 'polynomial'});
+            this._seriesChartModelList.push({color: '#e1d423', selected: false, countryName: country.name, data: amountInfected, name: 'active cases', buildRegression: false, regressionType: 'polynomial'});
+            this._seriesChartModelList.push({color: '#2c0209', selected: false, countryName: country.name, data: amountMortality, name: 'mortality', buildRegression: true, regressionType: 'linear'});
             this._seriesChartModelList.push({color: '#7832b2', selected: false, countryName: country.name, data: doublingCasesRate, name: 'doubling cases rate', buildRegression: true, regressionType: 'linear'});
             this._seriesChartModelList.push({color: '#2bd62c', selected: false, countryName: country.name, data: amountHealed, name: 'healed', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#33bf36', selected: false, countryName: country.name, data: amountHealedNew, name: 'new healed', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#cb020c', selected: false, countryName: country.name, data: amountDied, name: 'died', buildRegression: true, regressionType: 'polynomial'});
             this._seriesChartModelList.push({color: '#bc020a', selected: false, countryName: country.name, data: amountDiedNew, name: 'new died', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#2c0209', selected: false, countryName: country.name, data: amountMortality, name: 'mortality', buildRegression: true, regressionType: 'linear'});
 
             if (buildLegend)
             {

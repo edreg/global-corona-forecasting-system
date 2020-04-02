@@ -299,6 +299,7 @@ class AquireDataService
             'Iran (Islamic Republic of)' => 'Iran',
             'Cabo Verde'                 => 'Cape Verde',
             'Republic of Korea'          => 'South Korea',
+            'Korea, South'               => 'South Korea',
             'Timor-Leste'                => 'East Timor',
             'Burma'                      => 'Myanmar [Burma]',
             'Unites States'              => 'US',
