@@ -27,35 +27,62 @@
             <li role="presentation" class="nav-item">
                 <a href="#tabs-info" class="nav-link" aria-controls="tabs-mode" role="tab" data-toggle="tab">{{ 'Info'|trans }}</a>
             </li>
+            <li role="presentation" class="nav-item">
+                <a href="#tabs-config" class="nav-link" aria-controls="tabs-mode" role="tab" data-toggle="tab">{{ 'Config'|trans }}</a>
+            </li>
         </ul>
         <!-- Tab panes -->
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane" id="tabs-geo">
+            <div role="tabpanel" class="tab-pane" id="tabs-config">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="text-center col-md-6">
                         <div class="row">
-                            <div class="col-md-4"></div>
-                            <label class="col-md-8" for="slider-date-range" id="selected-date" style="border: 0; color: #f6931f; font-weight: bold;">{{ 'Date'|trans }}</label>
+                            <label class="col-md-12" for="polynomial-coefficients-range-control">{{ '# of polynomial regression coefficients'|trans }}</label>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <input id="slider-date-range" class="custom-range border-0" type="range" min="0" max="60" step="86400" />
+                                <input id="polynomial-coefficients-range-control" class="custom-range border-0" type="range" min="3" max="7"/>
                             </div>
                         </div>
-{#                        <div class="row">#}
-{#                            <label class="col-md-4" for="selected-date"></label>#}
-{#                            <input class="col-md-8" type="text" id="selected-date" style="border: 0; color: #f6931f; font-weight: bold;" size="100"/>#}
-{#                        </div>#}
-{#                        <div class="row">#}
-{#                            <div class="col-md-12">#}
-{#                                <div id="slider-range"></div>#}
-{#                            </div>#}
-{#                        </div>#}
-
                     </div>
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4"></div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <label class="col-md-12" for="forecast-days-range-control">{{ 'Forecast in days'|trans }}</label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input id="forecast-days-range-control" class="custom-range border-0" type="range" min="2" max="60"/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <div class="spacer"></div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <form>
+                            <div class="input-group date" data-provide="datepicker">
+                                <input id="stats-config-datepicker" type="text" name="date" class="form-control" value="{{ dateValue }}" placeholder="pick a date...">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-outline-secondary">
+                                        <span class="fa fa-search">{{ 'Send'|trans }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-9"></div>
+                </div>
+                <div class="spacer"></div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="tabs-geo">
+                <div class="spacer"></div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="col-md-8" for="slider-date-range-geo" id="selected-date-geo" style="border: 0; font-weight: bold;">{{ 'Date'|trans }}</label>
+                        <input id="slider-date-range-geo" class="custom-range border-0" type="range" min="0" max="60" step="86400" />
+                    </div>
+                </div>
+                <div class="spacer"></div>
                 <div id="corona-geo-chart-div" class="echart-map"></div>
             </div>
             <div role="tabpanel" class="tab-pane" id="tabs-info">
@@ -100,26 +127,6 @@
                             <select id="country-selection" multiple="" class="selectpicker col-md-12" data-live-search="true"></select>
                         </div>
                     </div>
-                    <div class="text-center col-md-4">
-                        <div class="row">
-                            <label class="col-md-12" for="polynomial-coefficients-range-control">{{ '# of polynomial regression coefficients'|trans }}</label>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <input id="polynomial-coefficients-range-control" class="custom-range border-0" type="range" min="3" max="7"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="row">
-                            <label class="col-md-12" for="forecast-days-range-control">{{ 'Forecast in days'|trans }}</label>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <input id="forecast-days-range-control" class="custom-range border-0" type="range" min="2" max="60"/>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div id="corona-chart-per-country-div" class="echart-map"></div>
             </div>
@@ -127,37 +134,29 @@
             <div role="tabpanel" class="tab-pane active" id="tabs-table">
                 <div class="spacer"></div>
                 <div class="row">
-                    <div class="col-md-3">
-                        <form>
-                            <div class="input-group date" data-provide="datepicker">
-                                <input id="stats-table-datepicker" type="text" name="date" class="form-control" value="{{ dateValue }}" placeholder="pick a date...">
-                                <div class="input-group-append">
-                                    <button type="submit" class="btn btn-outline-secondary">
-                                        <span class="fa fa-search">{{ 'Send'|trans }}</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                    <div class="col-md-12">
+                        <label class="col-md-8" for="slider-date-range-table" id="selected-date-table" style="border: 0; font-weight: bold;">{{ 'Date'|trans }}</label>
+                        <input id="slider-date-range-table" class="custom-range border-0" type="range" min="0" max="60" step="86400" />
                     </div>
-                    <div class="col-md-9"></div>
                 </div>
                 <div class="spacer"></div>
+
 
                 <table class="table tableFixHead" id="corona-stats">
                     <thead>
                         <tr>
                             <th>{{ 'Country'|trans }}</th>
-                            <th>{{ 'Infections'|trans }}</th>
-                            <th>{{ 'New infections'|trans }}</th>
+                            <th>{{ 'Cases'|trans }}</th>
+                            <th>{{ 'New cases'|trans }}</th>
                             <th>{{ 'Mortality'|trans }}</th>
                             <th>{{ 'Doubling rate of cases in days'|trans }}</th>
                             <th>{{ 'Healed'|trans }}</th>
                             <th>{{ 'New healed'|trans }}</th>
-                            <th>{{ 'Doubling rate of healed in days'|trans }}</th>
+{#                            <th>{{ 'Doubling rate of healed in days'|trans }}</th>#}
                             <th>{{ 'Death'|trans }}</th>
                             <th>{{ 'New deaths'|trans }}</th>
-                            <th>{{ 'Doubling rate of deaths in days'|trans }}</th>
-                            <th>{{ 'Infections by 1 mio inhabitants'|trans }}</th>
+{#                            <th>{{ 'Doubling rate of deaths in days'|trans }}</th>#}
+                            <th>{{ 'Cases by 1 mio inhabitants'|trans }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -171,10 +170,10 @@
                             <td>{{ coronaStats.getDoublingTotalRateInDays|number_format(2, '.', ',') }}</td>
                             <td>{{ coronaStats.amountHealed|number_format(0, '.', ',') }}</td>
                             <td>{{ (coronaStats.amountHealed - coronaStats.getAmountHealedTheDayBefore)|number_format(0, '.', ',') }}</td>
-                            <td>{{ coronaStats.getDoublingHealedRateInDays|number_format(2, '.', ',') }}</td>
+{#                            <td>{{ coronaStats.getDoublingHealedRateInDays|number_format(2, '.', ',') }}</td>#}
                             <td>{{ coronaStats.amountDeath|number_format(0, '.', ',') }}</td>
                             <td>{{ (coronaStats.amountDeath - coronaStats.getAmountDeathTheDayBefore)|number_format(0, '.', ',') }}</td>
-                            <td>{{ coronaStats.getDoublingDeathRateInDays|number_format(2, '.', ',') }}</td>
+{#                            <td>{{ coronaStats.getDoublingDeathRateInDays|number_format(2, '.', ',') }}</td>#}
                             <td>{{ (coronaStats.amount / ((coronaStats.country.population + 1) / 1000000))|number_format(0, '.', ',') }}</td>
 
                         </tr>
@@ -182,29 +181,6 @@
                     </tbody>
 
                 </table>
-                {# display navigation #}
-{#                <div class="navigation">#}
-{#                    {{ knp_pagination_render(pagination) }}#}
-{#                </div>#}
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="customToolBoxModal" tabindex="-1" role="dialog" aria-labelledby="customToolBoxModal" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <span class="modal-title" id="customToolBoxModalLabel">{{ 'Change color'|trans }}</span>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ 'Close'|trans }}</button>
-                </div>
             </div>
         </div>
     </div>

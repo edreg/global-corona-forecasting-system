@@ -12,10 +12,15 @@ enum RegressionType {
     polynomial = 'polynomial',
 }
 
+enum RegressionFormulaBehavingType
+{
+    nonLowering = 'nonLowering',
+    gteZero = 'gteZero',
+}
+
 export class RegressionAndDataService {
     private _dataResponseInterface: CoronaChartResponseInterface;
     private _forecastInDays: number;
-    private _regressionDateList: {};
     private _regressionFactor: number;
     private _regressionFormulaByName: {};
     private _xAxisAssignment: {};
@@ -31,6 +36,12 @@ export class RegressionAndDataService {
     private _seriesDataByCountryId: {};
     private _countrySelectionList: any[];
     private _seriesGeoModelList: Array<SeriesGeoInterface>;
+    private _regressionModelList: {};
+    private _triggerRegressionRecalculation: boolean;
+
+    get regressionModelList(): {} {
+        return this._regressionModelList;
+    }
 
     get forecastInDays(): number {
         return this._forecastInDays;
@@ -38,14 +49,6 @@ export class RegressionAndDataService {
 
     set forecastInDays(value: number) {
         this._forecastInDays = value;
-    }
-
-    get regressionDateList(): {} {
-        return this._regressionDateList;
-    }
-
-    set regressionDateList(value: {}) {
-        this._regressionDateList = value;
     }
 
     get regressionFactor(): number {
@@ -76,14 +79,6 @@ export class RegressionAndDataService {
         return this._geoCoordMap;
     }
 
-    get dateList(): {} {
-        return this._dateList;
-    }
-
-    get chartDateList(): {} {
-        return this._chartDateList;
-    }
-
     get selectedDate() {
         return this._selectedDate;
     }
@@ -108,13 +103,17 @@ export class RegressionAndDataService {
         return this._seriesGeoModelList;
     }
 
+    set triggerRegressionRecalculation(value: boolean) {
+        this._triggerRegressionRecalculation = value;
+    }
+
     constructor(dataResponseInterface: CoronaChartResponseInterface) {
         this._dataResponseInterface = dataResponseInterface;
         this._xAxisAssignment = {};
         this._regressionFactor = 5;
         this._dataRowCount = 0;
+        this._triggerRegressionRecalculation = true;
         this._regressionFormulaByName = {};
-        this._regressionDateList = {};
         this._forecastInDays = 7;
         this._geoCoordMap = {};
         this._statsPerCountry = {};
@@ -134,8 +133,8 @@ export class RegressionAndDataService {
 
     buildRegression() {
         this.processResponseData();
-        this.buildGeoSeriesData();
         //this.calculateRegressions();
+        this.buildGeoSeriesData();
     }
 
     processResponseData(): void {
@@ -144,8 +143,6 @@ export class RegressionAndDataService {
             this._dateList[this._dataRowCount] = date;
             this._chartDateList[this._dataRowCount] = date;
             this._lastDate = date;
-
-
             this._dataRowCount++;
         }
 
@@ -231,9 +228,11 @@ export class RegressionAndDataService {
         let doublingRateSeriesData = [];
         let mortalityRateSeriesData = [];
 
+        this.checkRegressionRecalculation();
+        let dateIndex = this._xAxisAssignment[this.selectedDate];
         for (let country of this._dataResponseInterface.countryList) {
-            if (this._dataResponseInterface.data[country.id] && this._dataResponseInterface.data[country.id][this.selectedDate] && country.name !== 'World') {
-                lastAmountTotalGeoStatPerCountry[country.id] = this._dataResponseInterface.data[country.id][this.selectedDate];
+            if (this.regressionModelList[country.id] && this.regressionModelList[country.id][dateIndex] && country.name !== 'World') {
+                lastAmountTotalGeoStatPerCountry[country.id] = this.regressionModelList[country.id][dateIndex];
             }
         }
 
@@ -433,22 +432,22 @@ export class RegressionAndDataService {
         });
     }
 
-    calculateRegressions() {
+    checkRegressionRecalculation() {
+        if (this._triggerRegressionRecalculation) {
+            this.calculateRegressions();
+            this._triggerRegressionRecalculation = false;
+        }
+    }
 
-        let regressionModelList = {};
-        $.each(this.seriesDataByCountryId, (countryId, countryData) => {
+    calculateRegressions() {
+        this._regressionModelList = $.extend(true, {}, this.seriesDataByCountryId);
+        $.each(this._regressionModelList, (countryId, countryData) => {
             // @ts-ignore
-            regressionModelList[countryId] = {};
             let regressionData = {
                 amountTotal: [],
                 amountInfected: [],
                 amountHealed: [],
                 amountDeath: [],
-
-                amountTotalTheDayBefore: [],
-                amountInfectedTheDayBefore: [],
-                amountHealedTheDayBefore: [],
-                amountDeathTheDayBefore: [],
 
                 doublingTotalRate: [],
                 doublingInfectionRate: [],
@@ -461,22 +460,20 @@ export class RegressionAndDataService {
                 doublingHealedRate: [],
                 doublingDeathRate: [],
             };
-            let exampleStat:CoronaStatInterface;
+            let aStat: CoronaStatInterface;
             $.each(countryData, (key, stat: CoronaStatInterface) => {
                 regressionData.amountTotal.push(stat.amountTotal);
                 regressionData.amountInfected.push(stat.amountInfected);
                 regressionData.amountHealed.push(stat.amountHealed);
                 regressionData.amountDeath.push(stat.amountDeath);
-                regressionData.amountTotalTheDayBefore.push(stat.amountTotalTheDayBefore);
-                regressionData.amountInfectedTheDayBefore.push(stat.amountInfectedTheDayBefore);
-                regressionData.amountHealedTheDayBefore.push(stat.amountHealedTheDayBefore);
-                regressionData.amountDeathTheDayBefore.push(stat.amountDeathTheDayBefore);
                 regressionData.doublingTotalRate.push(stat.doublingTotalRate);
                 regressionData.doublingInfectionRate.push(stat.doublingInfectionRate);
                 regressionData.doublingHealedRate.push(stat.doublingHealedRate);
                 regressionData.doublingDeathRate.push(stat.doublingDeathRate);
-                exampleStat = stat;
+                aStat = stat;
             });
+            let exampleStat: CoronaStatInterface;
+            exampleStat = $.extend(true, {}, aStat);
             exampleStat.amountTotal = 0;
             exampleStat.amountInfected = 0;
             exampleStat.amountHealed = 0;
@@ -489,31 +486,31 @@ export class RegressionAndDataService {
             exampleStat.doublingInfectionRate = 0;
             exampleStat.doublingHealedRate = 0;
             exampleStat.doublingDeathRate = 0;
+
             $.each(regressionData, (name, data: Array<number>) => {
-                let mappedSeries = data.map((value, key) => { return [key, value || 0]; });
+
                 let regression;
-                if (typeof linearRegression[name] !== 'undefined') {
-                    regression = ecStat.regression('linear', mappedSeries);
-                } else {
-                    regression = ecStat.regression('polynomial', mappedSeries, this._regressionFactor);
-                }
-                this._regressionFormulaByName[name] = regression.expression;
-                let formula = regression.expression
-                    .replace('y = ', '')
-                    .replace('x ', '*(x) ')
-                    .replace('x^2', '*(x*x)')
-                    .replace('x^3', '*(x*x*x)')
-                    .replace('x^4', '*(x*x*x*x)')
-                    .replace('x^5', '*(x*x*x*x*x)')
-                    .replace('x^6', '*(x*x*x*x*x*x)')
-                    .replace('x^7', '*(x*x*x*x*x*x*x)')
-                    .replace('x^8', '*(x*x*x*x*x*x*x*x)')
-                    .replace('x^9', '*(x*x*x*x*x*x*x*x*x)')
-                    .replace('x^10', '*(x*x*x*x*x*x*x*x*x*x)')
-                ;
+                let regressionData = [];
+                let positiveValueFound = false;
                 let lastDate = this._lastDate;
 
-                for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this._forecastInDays); i++) {
+                //start with the first non zero value
+                for (let i = 0; i < data.length; i++) {
+                    if (positiveValueFound || data[i] > 0)
+                    {
+                        regressionData.push([i, data[i]]);
+                        positiveValueFound = true;
+                    }
+                }
+                if (typeof linearRegression[name] !== 'undefined') {
+                    regression = ecStat.regression('linear', regressionData);
+                } else {
+                    regression = ecStat.regression('polynomial', regressionData, this._regressionFactor);
+                }
+                this._regressionFormulaByName[name] = regression.expression;
+                let formula = this.getRegressionFormula(regression);
+
+                for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
                     let tmpDate = new Date(lastDate);
                     tmpDate.setDate(tmpDate.getDate() + 1);
                     lastDate = this._dateService.formatDate(tmpDate);
@@ -521,74 +518,51 @@ export class RegressionAndDataService {
                     let formulaResult = eval(subFormula);
 
                     this._xAxisAssignment[lastDate] = i;
-                    this._regressionDateList[i] = lastDate;
 
-                    //regressionData[name].push(Math.floor(formulaResult));
-                    if (typeof regressionModelList[countryId][i] === 'undefined')
+                    if (typeof this._regressionModelList[countryId][i] === 'undefined')
                     {
                         // @ts-ignore
-                        regressionModelList[countryId][i] = $.extend(true, {}, exampleStat);
+                        this._regressionModelList[countryId][i] = $.extend(true, {}, exampleStat);
+                        if (typeof this._regressionModelList[countryId][i - 1] !== 'undefined')
+                        {
+                            this._regressionModelList[countryId][i]['amountTotalTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountTotal'];
+                            this._regressionModelList[countryId][i]['amountInfectedTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountInfected'];
+                            this._regressionModelList[countryId][i]['amountHealedTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountHealed'];
+                            this._regressionModelList[countryId][i]['amountDeathTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountDeath'];
+                        }
                     }
                     // @ts-ignore
-                    regressionModelList[countryId][i].date = lastDate;
+                    this._regressionModelList[countryId][i].date = lastDate;
                     if (typeof linearRegression[name] !== 'undefined') {
                         // @ts-ignore
-                        regressionModelList[countryId][i][name] = formulaResult;
+                        this._regressionModelList[countryId][i][name] = formulaResult;
                     } else {
                         // @ts-ignore
-                        regressionModelList[countryId][i][name] = Math.floor(formulaResult);
+                        this._regressionModelList[countryId][i][name] = Math.floor(formulaResult);
                     }
                 }
             });
         });
-        console.log(regressionModelList);
+        //console.log(this._regressionModelList);
     }
 
-    getRegression(chartModel: SeriesChartInterface) {
-        if (chartModel.buildRegression == false) {
-            return chartModel;
-        }
+    getLastRealDateDataPosition()
+    {
+        return this._xAxisAssignment[this._lastDate];
+    }
 
-        let mappedSeries = chartModel.data.map((value, key) => { return [key, value || 0]; });
-        let regressionData = [];
-        let positiveValueFound = false;
-        //start with the first non zero value
-        for (let i = 0; i < chartModel.data.length; i++) {
-            if (positiveValueFound || chartModel.data[i] > 0)
-            {
-                regressionData.push([i, chartModel.data[i]]);
-                positiveValueFound = true;
-            }
-        }
+    getDataPositionByDate(date: string)
+    {
+        return this._xAxisAssignment[date];
+    }
 
-        let regression;
+    getLastDateWithForecastDataPosition()
+    {
+        return this.getLastRealDateDataPosition() + this.forecastInDays;
+    }
 
-        switch (chartModel.regressionType) {
-            case 'linear':
-                regression = ecStat.regression(
-                    'linear',
-                    mappedSeries
-                );
-                break;
-            case 'exponential':
-                regression = ecStat.regression(
-                    'exponential',
-                    mappedSeries
-                );
-                break;
-            case 'polynomial':
-            default:
-                regression = ecStat.regression(
-                    'polynomial',
-                    regressionData,
-                    this._regressionFactor
-                );
-                break;
-        }
-
-        this._regressionFormulaByName[chartModel.name] = regression.expression;
-
-        let formula = regression.expression
+    getRegressionFormula(regression) {
+        return regression.expression
             .replace('y = ', '')
             .replace('x ', '*(x) ')
             .replace('x^2', '*(x*x)')
@@ -599,31 +573,6 @@ export class RegressionAndDataService {
             .replace('x^7', '*(x*x*x*x*x*x*x)')
             .replace('x^8', '*(x*x*x*x*x*x*x*x)')
             .replace('x^9', '*(x*x*x*x*x*x*x*x*x)')
-            .replace('x^10', '*(x*x*x*x*x*x*x*x*x*x)')
-        ;
-        let lastDate = this._lastDate;
-        let lastFormulaResult = 0;
-
-        for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this._forecastInDays); i++) {
-            let tmpDate = new Date(lastDate);
-            tmpDate.setDate(tmpDate.getDate() + 1);
-            lastDate = this._dateService.formatDate(tmpDate);
-            let subFormula = formula.replace(/x/g, i.toString());
-            let formulaResult = eval(subFormula) > 0 ? eval(subFormula) : 0;
-
-            this._xAxisAssignment[lastDate] = i;
-            this._regressionDateList[i] = lastDate;
-            // if (lastFormulaResult > formulaResult && chartModel.regressionType !== 'linear')
-            // {
-            //     formulaResult = lastFormulaResult * 1.002;
-            // }
-
-            lastFormulaResult = formulaResult;
-            if (chartModel.regressionType == 'linear') {
-                chartModel.data.push(formulaResult);
-            } else {
-                chartModel.data.push(Math.floor(formulaResult));
-            }
-        }
+            .replace('x^10', '*(x*x*x*x*x*x*x*x*x*x)');
     }
 }
