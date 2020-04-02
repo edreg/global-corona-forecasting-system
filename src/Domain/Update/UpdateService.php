@@ -44,7 +44,7 @@ class UpdateService
 
         $process = Process::fromShellCommandline(
             'cd ' . $this->projectDirectory . ' && git pull && cp .env.prod .env && ' . $copyHtaccessCommand
-            . ' && cd ' . $this->projectDirectory . ' && composer install'
+            . ' && cd ' . $this->projectDirectory . ' && composer install && php bin/console cache:clear'
         );
         $process->run();
 
