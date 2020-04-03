@@ -297,6 +297,11 @@ export class RegressionAndDataService {
             if (mortality > 0 && mortalityCasesRate < mortality) {
                 mortalityCasesRate = mortality;
             }
+            if (mortality > 100)
+            {
+                console.log(mortality);
+                console.log(stat);
+            }
 
             lastAmountCasesGeoData.push({name: stat.country.name, value: stat.amountTotal, stat: stat});
             lastAmountInfectedGeoData.push({name: stat.country.name, value: stat.amountInfected, stat: stat});
@@ -612,19 +617,29 @@ export class RegressionAndDataService {
     sanitizeValues(stat: CoronaStatInterface, statDayBefore: CoronaStatInterface) {
         if (stat.amountHealed < statDayBefore.amountHealed)
         {
-            stat.amountHealed = statDayBefore.amountHealed * this._regressionCorrection;
+            stat.amountHealed =  Math.floor(statDayBefore.amountHealed * this._regressionCorrection);
         }
 
         if (stat.amountDeath < statDayBefore.amountDeath)
         {
-            stat.amountDeath = statDayBefore.amountDeath * this._regressionCorrection;
+            stat.amountDeath =  Math.floor(statDayBefore.amountDeath * this._regressionCorrection);
         }
 
-        stat.amountInfected = stat.amountTotal - stat.amountHealed - stat.amountDeath;
+        stat.amountInfected = Math.max(stat.amountTotal - stat.amountHealed - stat.amountDeath, 0);
         if (stat.amountInfected <= 0) {
             stat.amountInfected = 0;
-            stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath, statDayBefore.amountHealed * this._regressionCorrection);
-            stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed, statDayBefore.amountDeath * this._regressionCorrection);
+            stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath,  Math.floor(statDayBefore.amountHealed * this._regressionCorrection), 0);
+            stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed,  Math.floor(statDayBefore.amountDeath * this._regressionCorrection), 0);
+        }
+
+        if (stat.amountHealed > stat.amountTotal)
+        {
+            stat.amountHealed = Math.max(Math.min(stat.amountTotal - stat.amountDeath, stat.amountTotal), 0);
+        }
+
+        if (stat.amountDeath > stat.amountTotal)
+        {
+            stat.amountDeath = Math.max(Math.min(stat.amountTotal - stat.amountHealed, stat.amountTotal), 0);
         }
 
         return stat;

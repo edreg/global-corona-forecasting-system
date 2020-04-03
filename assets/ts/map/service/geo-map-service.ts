@@ -96,8 +96,11 @@ export class GeoMapService
                 selected: this._selectedGeoChartLegend,
                 left: '0%',
                 orient: 'vertical',
+                itemGap: 10,
+                itemHeight: 20,
                 textStyle: {
-                    color: '#571117'
+                    color: '#801117',
+                    fontSize: 20
                 },
                 z: 500
             },
@@ -149,6 +152,16 @@ export class GeoMapService
                 },
                 z: 10
             },
+            // grid: [{
+            //     left: '15%',
+            //     right: '15%',
+            //     bottom: '7%',
+            //     top: '10%',
+            //     containLabel: true,
+            //     borderColor: 'transparent',
+            //     backgroundColor: '#b2d7f0',
+            //     z: 5
+            // }],
             grid: [{
                 show: true,
                 left: 0,
