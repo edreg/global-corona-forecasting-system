@@ -34,12 +34,13 @@ class UpdateService
         {
             $addCommand = 'rm ../../public/build &&';
         }
-        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . 'data/webpack && ' . $addCommand . ' tar -xf build.tar.gz -C ../../public');
+        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . 'data/webpack && ' . $addCommand . ' sh unzipBuild.sh');
         $process->run();
 
         while ($process->isRunning())
         {
             //wait
+
         }
 
         $this->logger->info($process->getOutput());
@@ -47,10 +48,11 @@ class UpdateService
 
     public function update() : void
     {
-        $copyHtaccessCommand = 'cd ' . $this->projectDirectory . 'public && cp .htaccess.prod .htaccess';
+        $env = $_SERVER['APP_ENV'];
+        $copyHtaccessCommand = 'cd ' . $this->projectDirectory . 'public && cp .htaccess.' . $env . ' .htaccess';
 
         $process = Process::fromShellCommandline(
-            'cd ' . $this->projectDirectory . ' && git pull && cp .env.prod .env && ' . $copyHtaccessCommand
+            'cd ' . $this->projectDirectory . ' && git pull && cp .env.' . $env . ' .env && ' . $copyHtaccessCommand
             . ' && cd ' . $this->projectDirectory . ' && composer install'
         );
         $process->run();
@@ -58,6 +60,7 @@ class UpdateService
         while ($process->isRunning())
         {
             //wait
+            echo $process->getOutput();
         }
 
         $this->logger->info($process->getOutput());

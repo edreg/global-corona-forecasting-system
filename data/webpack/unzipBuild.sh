@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-tar -xf build.tar.gz -C build
+tar -xf build.tar.gz -C ../../public
