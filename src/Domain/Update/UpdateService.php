@@ -60,8 +60,8 @@ class UpdateService
         while ($process->isRunning())
         {
             //wait
-            echo $process->getOutput();
         }
+        echo $process->getOutput();
 
         $this->logger->info($process->getOutput());
     }

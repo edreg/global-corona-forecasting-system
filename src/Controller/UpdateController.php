@@ -119,7 +119,7 @@ class UpdateController extends AbstractController
     }
 
     /**
-     * @Route("/cache-clear", name="cache-clear")
+     * @Route("/cache-clear", name="cache_clear")
      *
      * @param \App\Domain\Update\UpdateService $updateService
      *
