@@ -312,6 +312,7 @@ class AcquireDataService
             'Czechia'                    => 'Czech Republic',
             'Viet Nam'                   => 'Vietnam',
             'Zimbabw'                    => 'Zimbabwe',
+            'Holy See'                   => 'Vatican City',
         ];
     }
 }
