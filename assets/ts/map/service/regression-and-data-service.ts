@@ -293,7 +293,7 @@ export class RegressionAndDataService {
             if (stat.doublingInfectionRate > 0 && doublingCasesRate < stat.doublingInfectionRate) {
                 doublingCasesRate = stat.doublingInfectionRate;
             }
-            let mortality = Math.max(100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0), 100);
+            let mortality = Math.min(100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0), 100);
             if (mortality > 0 && mortalityCasesRate < mortality) {
                 mortalityCasesRate = mortality;
             }

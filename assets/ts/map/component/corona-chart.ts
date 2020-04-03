@@ -304,7 +304,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                     amountCasesNew.push(stat.amountTotal - stat.amountTotalTheDayBefore);
                     amountInfected.push(stat.amountInfected);
                     //amountInfected.push(stat.amountTotal - stat.amountHealed - stat.amountDeath);
-                    amountMortality.push(Math.max((stat.amountTotal > 0 ? 100 * (stat.amountDeath / stat.amountTotal) : 0), 100));
+                    amountMortality.push(Math.min((stat.amountTotal > 0 ? 100 * (stat.amountDeath / stat.amountTotal) : 0), 100));
                     doublingCasesRate.push(stat.doublingTotalRate);
                     amountHealed.push(stat.amountHealed);
                     amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
