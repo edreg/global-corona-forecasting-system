@@ -4,6 +4,7 @@ namespace App\Domain\Update;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 class UpdateService
@@ -27,7 +28,13 @@ class UpdateService
 
     public function updateYarn() : void
     {
-        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . ' && yarn encore prod');
+        $fileSystem = new FileSystem();
+        $addCommand = '';
+        if ($fileSystem->exists($this->projectDirectory . '../../public/build'))
+        {
+            $addCommand = 'rm ../../public/build &&';
+        }
+        $process = Process::fromShellCommandline('cd ' . $this->projectDirectory . 'data/webpack && ' . $addCommand . ' tar -xf build.tar.gz -C ../../public');
         $process->run();
 
         while ($process->isRunning())

@@ -1,3 +1,7 @@
+@import "../../node_modules/jquery-ui-dist/jquery-ui.css";
+@import "../../node_modules/bootstrap/scss/bootstrap";
+@import "../../node_modules/bootstrap-select/sass/bootstrap-select";
+
 body {
     background-color: ghostwhite;
     width: 100%;
@@ -36,6 +40,11 @@ body {
 
 .hide {
     display: none;
+}
+
+.custom-range {
+    padding: .3em;
+    height: .5em;
 }
 
 .spacer {

@@ -99,8 +99,12 @@ export class RegressionAndDataService {
         return this._countrySelectionList;
     }
 
-    get seriesGeoModelList(): any[] {
+    get seriesGeoModelList(): Array<SeriesGeoInterface> {
         return this._seriesGeoModelList;
+    }
+
+    set seriesGeoModelList(value: Array<SeriesGeoInterface>) {
+        this._seriesGeoModelList = value;
     }
 
     set triggerRegressionRecalculation(value: boolean) {
@@ -110,7 +114,7 @@ export class RegressionAndDataService {
     constructor(dataResponseInterface: CoronaChartResponseInterface) {
         this._dataResponseInterface = dataResponseInterface;
         this._xAxisAssignment = {};
-        this._regressionFactor = 5;
+        this._regressionFactor = 4;
         this._dataRowCount = 0;
         this._triggerRegressionRecalculation = true;
         this._regressionFormulaByName = {};
@@ -289,7 +293,7 @@ export class RegressionAndDataService {
             if (stat.doublingInfectionRate > 0 && doublingCasesRate < stat.doublingInfectionRate) {
                 doublingCasesRate = stat.doublingInfectionRate;
             }
-            let mortality = 100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0);
+            let mortality = Math.max(100 * (stat.amountTotal > 0 ? (stat.amountDeath / stat.amountTotal) : 0), 100);
             if (mortality > 0 && mortalityCasesRate < mortality) {
                 mortalityCasesRate = mortality;
             }
@@ -439,43 +443,44 @@ export class RegressionAndDataService {
         }
     }
 
+    private readonly _regressionCorrection = 1.004;
+
     calculateRegressions() {
         this._regressionModelList = $.extend(true, {}, this.seriesDataByCountryId);
         $.each(this._regressionModelList, (countryId, countryData) => {
             // @ts-ignore
             let regressionData = {
                 amountTotal: [],
-                amountInfected: [],
                 amountHealed: [],
                 amountDeath: [],
 
                 doublingTotalRate: [],
-                doublingInfectionRate: [],
-                doublingHealedRate: [],
-                doublingDeathRate: [],
+                // doublingHealedRate: [],
+                // doublingDeathRate: [],
             };
             let linearRegression = {
                 doublingTotalRate: [],
-                doublingInfectionRate: [],
-                doublingHealedRate: [],
-                doublingDeathRate: [],
+                // doublingHealedRate: [],
+                // doublingDeathRate: [],
             };
             let notSinkingRegression = {
                 amountTotal: [],
-                amountInfected: [],
+                amountHealed: [],
+                amountDeath: [],
+            };
+            let lowerThanTotalRegression = {
                 amountHealed: [],
                 amountDeath: [],
             };
             let aStat: CoronaStatInterface;
             $.each(countryData, (key, stat: CoronaStatInterface) => {
                 regressionData.amountTotal.push(stat.amountTotal);
-                regressionData.amountInfected.push(stat.amountInfected);
                 regressionData.amountHealed.push(stat.amountHealed);
                 regressionData.amountDeath.push(stat.amountDeath);
                 regressionData.doublingTotalRate.push(stat.doublingTotalRate);
-                regressionData.doublingInfectionRate.push(stat.doublingInfectionRate);
-                regressionData.doublingHealedRate.push(stat.doublingHealedRate);
-                regressionData.doublingDeathRate.push(stat.doublingDeathRate);
+
+                // regressionData.doublingHealedRate.push(stat.doublingHealedRate);
+                // regressionData.doublingDeathRate.push(stat.doublingDeathRate);
                 aStat = stat;
             });
             let exampleStat: CoronaStatInterface;
@@ -492,7 +497,7 @@ export class RegressionAndDataService {
             exampleStat.doublingInfectionRate = 0;
             exampleStat.doublingHealedRate = 0;
             exampleStat.doublingDeathRate = 0;
-
+//let logged = false;
             $.each(regressionData, (name, data: Array<number>) => {
 
                 let regression;
@@ -501,12 +506,23 @@ export class RegressionAndDataService {
                 let lastDate = this._lastDate;
 
                 //start with the first non zero value
+                let count = 0;
                 for (let i = 0; i < data.length; i++) {
                     if (positiveValueFound || data[i] > 0)
                     {
+                        if (count === 0 && i > 0)
+                        {
+                            regressionData.push([i - 1, 0]);
+                            count++;
+                        }
                         regressionData.push([i, data[i]]);
                         positiveValueFound = true;
                     }
+                }
+
+                if (regressionData.length > 32)
+                {
+                    regressionData = regressionData.slice(regressionData.length - 31, regressionData.length);
                 }
 
                 if (typeof linearRegression[name] !== 'undefined') {
@@ -514,9 +530,22 @@ export class RegressionAndDataService {
                 } else {
                     regression = ecStat.regression('polynomial', regressionData, this._regressionFactor);
                 }
-                this._regressionFormulaByName[name] = regression.expression;
+                this._regressionFormulaByName[name + '|' + exampleStat.country.name] = regression.expression;
+
+                // if (name == 'amountDeath' && countryId == 755)
+                // {
+                //     console.log(regressionData);
+                // }
+
                 let formula = this.getRegressionFormula(regression);
                 let lastFormulaResult = 0;
+                if (
+                    typeof this._regressionModelList[countryId][this._xAxisAssignment[this._lastDate]] !== 'undefined'
+                    && typeof this._regressionModelList[countryId][this._xAxisAssignment[this._lastDate]][name] !== 'undefined'
+                )
+                {
+                    lastFormulaResult = this._regressionModelList[countryId][this._xAxisAssignment[this._lastDate]][name];
+                }
 
                 for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
                     let tmpDate = new Date(lastDate);
@@ -531,25 +560,28 @@ export class RegressionAndDataService {
                     }
 
                     this._xAxisAssignment[lastDate] = i;
-
-                    if (typeof this._regressionModelList[countryId][i] === 'undefined')
-                    {
+                    if (typeof this._regressionModelList[countryId][i] === 'undefined') {
                         // @ts-ignore
                         this._regressionModelList[countryId][i] = $.extend(true, {}, exampleStat);
-                        if (typeof this._regressionModelList[countryId][i - 1] !== 'undefined')
-                        {
-                            this._regressionModelList[countryId][i]['amountTotalTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountTotal'];
-                            this._regressionModelList[countryId][i]['amountInfectedTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountInfected'];
-                            this._regressionModelList[countryId][i]['amountHealedTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountHealed'];
-                            this._regressionModelList[countryId][i]['amountDeathTheDayBefore'] = this._regressionModelList[countryId][i - 1]['amountDeath'];
-                        }
                     }
-                    if (typeof notSinkingRegression[name] !== 'undefined' && lastFormulaResult > formulaResult) {
-                        formulaResult = lastFormulaResult;
-                    }
-                    lastFormulaResult = formulaResult;
                     // @ts-ignore
                     this._regressionModelList[countryId][i].date = lastDate;
+                    // let tempStat: CoronaStatInterface = this._regressionModelList[countryId][i];
+                    //
+                    // if (typeof lowerThanTotalRegression[name] !== 'undefined') {
+                    //     if (name === 'amountHealed' && tempStat.amountHealed >= tempStat.amountTotal - tempStat.amountDeath) {
+                    //         tempStat.amountHealed = tempStat.amountTotal - tempStat.amountDeath;
+                    //     }
+                    //     else if (name === 'amountDeath' && tempStat.amountDeath >= tempStat.amountTotal - tempStat.amountHealed) {
+                    //         tempStat.amountDeath = tempStat.amountTotal - tempStat.amountHealed;
+                    //     }
+                    // }
+
+                    if (typeof notSinkingRegression[name] !== 'undefined' && lastFormulaResult > formulaResult) {
+                        formulaResult = lastFormulaResult * this._regressionCorrection;
+                    }
+                    lastFormulaResult = formulaResult;
+
                     if (typeof linearRegression[name] !== 'undefined') {
                         // @ts-ignore
                         this._regressionModelList[countryId][i][name] = formulaResult;
@@ -559,8 +591,43 @@ export class RegressionAndDataService {
                     }
                 }
             });
+
+            for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
+                if (typeof this._regressionModelList[countryId][i - 1] !== 'undefined') {
+                    let tmpStat: CoronaStatInterface = this._regressionModelList[countryId][i];
+                    let tmpStatDayBefore: CoronaStatInterface = this._regressionModelList[countryId][i - 1];
+                    tmpStat.amountTotalTheDayBefore = tmpStatDayBefore.amountTotal;
+                    tmpStat.amountInfectedTheDayBefore = tmpStatDayBefore.amountInfected;
+                    tmpStat.amountHealedTheDayBefore = tmpStatDayBefore.amountHealed;
+                    tmpStat.amountDeathTheDayBefore = tmpStatDayBefore.amountDeath;
+                    // @ts-ignore
+                    this._regressionModelList[countryId][i] = this.sanitizeValues(tmpStat, tmpStatDayBefore);
+                }
+            }
         });
-        //console.log(this._regressionModelList);
+        // console.log(this._regressionFormulaByName['amountDeath|Germany']);
+        // console.log(this._regressionModelList[755]);
+    }
+
+    sanitizeValues(stat: CoronaStatInterface, statDayBefore: CoronaStatInterface) {
+        if (stat.amountHealed < statDayBefore.amountHealed)
+        {
+            stat.amountHealed = statDayBefore.amountHealed * this._regressionCorrection;
+        }
+
+        if (stat.amountDeath < statDayBefore.amountDeath)
+        {
+            stat.amountDeath = statDayBefore.amountDeath * this._regressionCorrection;
+        }
+
+        stat.amountInfected = stat.amountTotal - stat.amountHealed - stat.amountDeath;
+        if (stat.amountInfected <= 0) {
+            stat.amountInfected = 0;
+            stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath, statDayBefore.amountHealed * this._regressionCorrection);
+            stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed, statDayBefore.amountDeath * this._regressionCorrection);
+        }
+
+        return stat;
     }
 
     getLastRealDateDataPosition()

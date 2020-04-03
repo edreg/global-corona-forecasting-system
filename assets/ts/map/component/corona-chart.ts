@@ -272,7 +272,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         let series = [];
         let chartNameList = [];
         let legendData = [];
-        let legendSelectedObject = [];
+        let legendSelectedObject = {};
         let buildLegend = true;
 
         this._seriesChartModelList = [];
@@ -288,13 +288,13 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             let amountCasesNew = [];
             let amountHealedNew = [];
             let amountDiedNew = [];
-            // let amountCasesGeoDataPopulation = [];
-            // let amountInfectedGeoDataPopulation = [];
-            // let amountHealedGeoDataPopulation = [];
-            // let amountDeathGeoDataPopulation = [];
+            let amountCasesGeoDataPopulation = [];
+            let amountInfectedGeoDataPopulation = [];
+            let amountHealedGeoDataPopulation = [];
+            let amountDeathGeoDataPopulation = [];
             let amountMortality = [];
             let country: CountryInterface = this._dataService.countryById[countryId];
-            //let perPopulation = (country.population) || 1;
+            let perPopulation = (country.population) || 1;
             chartNameList.push(country.name);
 
             $.each(this._dataService.regressionModelList[countryId], (key:number, stat:CoronaStatInterface) => {
@@ -303,28 +303,29 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                     amountCases.push(stat.amountTotal);
                     amountCasesNew.push(stat.amountTotal - stat.amountTotalTheDayBefore);
                     amountInfected.push(stat.amountInfected);
-                    amountMortality.push((stat.amountTotal > 0 ? 100 * (stat.amountDeath / stat.amountTotal) : 0));
+                    //amountInfected.push(stat.amountTotal - stat.amountHealed - stat.amountDeath);
+                    amountMortality.push(Math.max((stat.amountTotal > 0 ? 100 * (stat.amountDeath / stat.amountTotal) : 0), 100));
                     doublingCasesRate.push(stat.doublingTotalRate);
                     amountHealed.push(stat.amountHealed);
                     amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
                     amountDied.push(stat.amountDeath);
                     amountDiedNew.push(stat.amountDeath - stat.amountDeathTheDayBefore);
-                    // amountCasesGeoDataPopulation.push(stat.amountTotal / perPopulation);
-                    // amountInfectedGeoDataPopulation.push(stat.amountInfected / perPopulation);
-                    // amountHealedGeoDataPopulation.push(stat.amountHealed / perPopulation);
-                    // amountDeathGeoDataPopulation.push(stat.amountDeath / perPopulation);
+                    amountCasesGeoDataPopulation.push(stat.amountTotal / perPopulation);
+                    amountInfectedGeoDataPopulation.push(stat.amountInfected / perPopulation);
+                    amountHealedGeoDataPopulation.push(stat.amountHealed / perPopulation);
+                    amountDeathGeoDataPopulation.push(stat.amountDeath / perPopulation);
                 }
             });
 
-            this._seriesChartModelList.push({color: '#193ce1', selected: true, countryName: country.name, data: amountCases, name: 'total', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#cbc42a', selected: false, countryName: country.name, data: amountCasesNew, name: 'new cases', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#e1d423', selected: false, countryName: country.name, data: amountInfected, name: 'active cases', buildRegression: false, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#2c0209', selected: false, countryName: country.name, data: amountMortality, name: 'mortality', buildRegression: true, regressionType: 'linear'});
-            this._seriesChartModelList.push({color: '#7832b2', selected: false, countryName: country.name, data: doublingCasesRate, name: 'doubling cases rate', buildRegression: true, regressionType: 'linear'});
-            this._seriesChartModelList.push({color: '#2bd62c', selected: false, countryName: country.name, data: amountHealed, name: 'healed', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#33bf36', selected: false, countryName: country.name, data: amountHealedNew, name: 'new healed', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#cb020c', selected: false, countryName: country.name, data: amountDied, name: 'died', buildRegression: true, regressionType: 'polynomial'});
-            this._seriesChartModelList.push({color: '#bc020a', selected: false, countryName: country.name, data: amountDiedNew, name: 'new died', buildRegression: true, regressionType: 'polynomial'});
+            this._seriesChartModelList.push({selected: true, countryName: country.name, data: amountCases, name: 'total', regressionFormulaKey: 'amountTotal|' + country.name,});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountCasesNew, name: 'new cases', regressionFormulaKey: '|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountInfected, name: 'active cases', regressionFormulaKey: 'amountInfected|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountMortality, name: 'mortality', regressionFormulaKey: '|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: doublingCasesRate, name: 'doubling cases rate', regressionFormulaKey: 'doublingTotalRate|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountHealed, name: 'healed', regressionFormulaKey: 'mountHealed|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountHealedNew, name: 'new healed', regressionFormulaKey: '|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountDied, name: 'died', regressionFormulaKey: 'amountDeath|' + country.name});
+            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountDiedNew, name: 'new died', regressionFormulaKey: '|' + country.name});
 
             if (buildLegend)
             {
@@ -348,6 +349,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         }
 
         let xAxisData = [];
+        //console.log(legendSelectedObject);
 
         $.each(this._dataService.xAxisAssignment, (date, key) => {
             if (key <= this._dataService.getLastDateWithForecastDataPosition())
@@ -362,20 +364,23 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 left: '0%',
             },
             legend: {
-                top: '7%',
+                top: '9%',
                 left: '0%',
-                inactiveColor: '#3e4257',
-                selectedMode: 'single',
+                inactiveColor: '#9098ae',
+                //selectedMode: 'single',
                 data: legendData,
                 selected: this._selectedChartLegend,
                 orient: 'vertical',
+                itemGap: 10,
+                itemHeight: 20,
                 textStyle: {
-                    color: '#571117'
+                    color: '#801117',
+                    fontSize: 20
                 },
             },
             tooltip: this.getTooltip(),
             grid: {
-                left: '11%',
+                left: '15%',
                 right: '15%',
                 bottom: '7%',
                 top: '10%',
@@ -416,19 +421,25 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     private buildDataSeries(chartModel: SeriesChartInterface) {
         let regressionData = chartModel.data;
+        let formula = chartModel.countryName;
+        //console.log(chartModel.regressionFormulaKey);
+        if (typeof this._dataService.regressionFormulaByName[chartModel.regressionFormulaKey] !== 'undefined')
+        {
+            formula = this._dataService.regressionFormulaByName[chartModel.regressionFormulaKey] + ' ' + chartModel.countryName;
+        }
 
         return {
             name: chartModel.name,
             id: chartModel.name + ' for ' + chartModel.countryName,
             type: 'line',
-            stack: chartModel.countryName,
+            //stack: chartModel.countryName,
             smooth: true,
             data: regressionData,
             markLine: {
                 label: {
                     show: true,
                     position: 'middle',
-                    formatter: (typeof this._dataService.regressionFormulaByName[chartModel.name] !== 'undefined' ? this._dataService.regressionFormulaByName[chartModel.name] : '') + ' ' + chartModel.countryName,
+                    formatter: formula,
                     textStyle: {
                         color: '#333',
                         fontSize: 14
@@ -448,6 +459,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             markArea: {
                 itemStyle: {
                     borderWidth: 1,
+                    opacity: 0.1
                 },
                 label: {
                     show: true

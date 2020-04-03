@@ -2,7 +2,7 @@
   "name": "skeleton",
   "version": "1.0.0",
   "main": "app.js",
-  "repository": "https://github.com/edreg/covid-19.git",
+  "repository": "https://github.com/edreg/global-corona-forecasting-system.git",
   "author": "Gerald Lippert <ger.lippert@gmail.com>",
   "license": "MIT",
   "devDependencies": {
@@ -12,6 +12,7 @@
     "bootstrap": "^4.4.1",
     "bootstrap-datepicker": "^1.9.0",
     "bootstrap-select": "^1.13.12",
+    "compression-webpack-plugin": "^3.1.0",
     "core-js": "^3.6.4",
     "datatables.net-bs4": "^1.10.20",
     "datatables.net-colreorder-bs4": "^1.5.2",

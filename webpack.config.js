@@ -1,4 +1,5 @@
 var Encore = require('@symfony/webpack-encore');
+const CompressionPlugin = require('compression-webpack-plugin');
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 // It's useful when you use tools that rely on webpack.config.js file.
@@ -8,7 +9,7 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
 
 Encore
     // directory where compiled assets will be stored
-    .setOutputPath('public/build/')
+    .setOutputPath(Encore.isProduction() ? 'data/webpack/build/' : 'public/build/')//'public/build/'
     // public path used by the web server to access the output path
     .setPublicPath(Encore.isProduction() ? '/build' : '/global-corona-forecasting-system/public/build')
     // only needed for CDN's or sub-directory deploy
@@ -77,31 +78,34 @@ Encore
     // uncomment if you're having problems with a jQuery plugin
     .autoProvidejQuery()
 
-    .copyFiles({
-            from: './node_modules/bootstrap',
-            to: 'dist/bootstrap/[path][name].[ext]'
-            //to: 'components/bootstrap/[path][name].[hash:8].[ext]'
-    })
-    .copyFiles({
-            from: './node_modules/jquery-ui',
-            to: 'dist/jquery-ui/[path][name].[ext]'
-    })
-    .copyFiles({
-            from: './node_modules/jquery-ui-dist',
-            to: 'dist/jquery-ui-dist/[path][name].[ext]'
-    })
-    .copyFiles({
-            from: './node_modules/echarts',
-            to: 'dist/echarts/[path][name].[ext]'
-    })
-    .copyFiles({
-            from: './node_modules/echarts-gl',
-            to: 'dist/echarts-gl/[path][name].[ext]'
-    })
+    //
+    // .copyFiles({
+    //         from: './node_modules/bootstrap',
+    //         to: 'dist/bootstrap/[path][name].[ext]'
+    //         //to: 'components/bootstrap/[path][name].[hash:8].[ext]'
+    // })
+    // .copyFiles({
+    //         from: './node_modules/jquery-ui',
+    //         to: 'dist/jquery-ui/[path][name].[ext]'
+    // })
+    // .copyFiles({
+    //         from: './node_modules/jquery-ui-dist',
+    //         to: 'dist/jquery-ui-dist/[path][name].[ext]'
+    // })
+    // .copyFiles({
+    //         from: './node_modules/echarts',
+    //         to: 'dist/echarts/[path][name].[ext]'
+    // })
+    // .copyFiles({
+    //         from: './node_modules/echarts-gl',
+    //         to: 'dist/echarts-gl/[path][name].[ext]'
+    // })
+
 
     // uncomment if you use API Platform Admin (composer req api-admin)
     //.enableReactPreset()
     //.addEntry('admin', './assets/js/admin.js')
+
 ;
 
 module.exports = Encore.getWebpackConfig();

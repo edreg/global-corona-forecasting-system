@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Domain\Corona\AquireDataService;
+use App\Domain\Corona\AcquireDataService;
 use App\Domain\Init\InitDataService;
 use App\Domain\Update\UpdateService;
 use App\Repository\CoronaStatsRepository;
@@ -28,11 +28,11 @@ class HomeController extends AbstractController
     private $serializer;
 
     /**
-     * @var \App\Domain\Corona\AquireDataService
+     * @var \App\Domain\Corona\AcquireDataService
      */
     private $dataService;
 
-    public function __construct(SerializerInterface $serializer, AquireDataService $dataService)
+    public function __construct(SerializerInterface $serializer, AcquireDataService $dataService)
     {
         $this->serializer = $serializer;
         $this->dataService = $dataService;
@@ -130,94 +130,6 @@ class HomeController extends AbstractController
         if ($this->isGranted('ROLE_ADMIN'))
         {
             $dataService->init();
-        }
-
-        return $this->redirectToRoute('home');
-    }
-
-    /**
-     * @Route("/renew-stats", name="renew_stats")
-     * @param \App\Domain\Corona\AquireDataService $aquireDataService
-     * @param \App\Domain\Init\InitDataService     $dataService
-     *
-     * @param \Doctrine\ORM\EntityManagerInterface $entityManager
-     *
-     * @param \Psr\Log\LoggerInterface             $logger
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function reNewStats(
-        AquireDataService $aquireDataService,
-        EntityManagerInterface $entityManager,
-        LoggerInterface $logger
-    ) : Response
-    {
-        if ($this->isGranted('ROLE_ADMIN'))
-        {
-            try
-            {
-                $entityManager->beginTransaction();
-                $aquireDataService->truncateStats();
-                $this->dataService->checkForNewData();
-                $entityManager->commit();
-                $entityManager->flush();
-            }
-            catch (\Throwable $throwable)
-            {
-                $entityManager->rollback();
-                $logger->critical($throwable->getMessage(), $throwable->getTrace());
-            }
-        }
-
-        return $this->redirectToRoute('stats');
-    }
-
-    /**
-     * @Route("/update", name="update")
-     *
-     * @param \App\Domain\Update\UpdateService $updateService
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function update(UpdateService $updateService) : Response
-    {
-        if ($this->isGranted('ROLE_ADMIN'))
-        {
-            $updateService->update();
-        }
-
-        return $this->redirectToRoute('home');
-    }
-
-    /**
-     * @Route("/update-yarn", name="update_yarn")
-     *
-     * @param \App\Domain\Update\UpdateService $updateService
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function updateYarn(UpdateService $updateService) : Response
-    {
-        if ($this->isGranted('ROLE_ADMIN'))
-        {
-            $updateService->updateYarn();
-        }
-
-        return $this->redirectToRoute('home');
-    }
-
-    /**
-     * @Route("/cache-clear", name="cache-clear")
-     *
-     * @param \App\Domain\Update\UpdateService $updateService
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function cacheClear(UpdateService $updateService) : Response
-    {
-        if ($this->isGranted('ROLE_ADMIN'))
-        {
-            $updateService->cacheClear();
         }
 
         return $this->redirectToRoute('home');

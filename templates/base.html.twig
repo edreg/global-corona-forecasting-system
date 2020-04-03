@@ -13,8 +13,6 @@
         {%- block head -%}
         <meta charset="UTF-8">
             {%- block stylesheet_header -%}
-                <link rel="stylesheet" type="text/css" href="{{- absolute_url(asset('build/dist/jquery-ui-dist/jquery-ui.css')) -}}"/>
-                <link rel="stylesheet" type="text/css" href="{{- absolute_url(asset('build/dist/bootstrap/dist/css/bootstrap.css')) -}}" media="all"/>
                 {{ encore_entry_link_tags('app') }}
             {%- endblock -%}
 

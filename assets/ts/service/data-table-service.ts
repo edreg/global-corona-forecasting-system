@@ -89,7 +89,7 @@ export class DataTableService {
             item.amountHealedNew = stat.amountHealed - stat.amountHealedTheDayBefore;
             item.amountDeath = stat.amountDeath;
             item.amountDeathNew = stat.amountDeath - stat.amountDeathTheDayBefore;
-            item.casesPerMillion = stat.amountTotalTheDayBefore / ((stat.country.population + 1) / 1000000);
+            item.casesPerMillion = stat.amountTotal / ((stat.country.population + 1) / 100000);
             data.push(item);
         });
 
@@ -106,8 +106,11 @@ export class DataTableService {
 
     private buildColumns() {
         let columns = [];
-        let columnCallbackFixedNumber = (data: number) => {
+        let columnCallbackFixedTwo = (data: number) => {
             return data.toFixed(2);
+        };
+        let columnCallbackFixedZero = (data: number) => {
+            return data.toFixed(0);
         };
         let cellCallbackMortality = (td: any, data: number) => {
             let className = 'dark-green';
@@ -141,21 +144,21 @@ export class DataTableService {
         };
 
         columns.push({title: 'Country', data: 'country', className: 'column'});
-        columns.push({title: 'Cases', data: 'amountTotal', className: 'column'});
-        columns.push({title: 'New cases', data: 'amountTotalNew', className: 'column-new-cases'});
-        columns.push({title: 'Mortality', data: 'mortality', className: 'column', render: columnCallbackFixedNumber, createdCell: cellCallbackMortality});
+        columns.push({title: 'Cases', data: 'amountTotal', className: 'column', render: columnCallbackFixedZero});
+        columns.push({title: 'New cases', data: 'amountTotalNew', className: 'column-new-cases', render: columnCallbackFixedZero});
+        columns.push({title: 'Mortality', data: 'mortality', className: 'column', render: columnCallbackFixedTwo, createdCell: cellCallbackMortality});
         columns.push({
             title: 'Doubling rate of cases in days',
             data: 'doublingTotalRate',
             className: 'column',
-            render: columnCallbackFixedNumber,
+            render: columnCallbackFixedTwo,
             createdCell: cellCallbackDoublingTotal
         });
-        columns.push({title: 'Healed', data: 'amountHealed', className: 'column-healed'});
-        columns.push({title: 'New healed', data: 'amountHealedNew', className: 'column-new-healed'});
-        columns.push({title: 'Death', data: 'amountDeath', className: 'column-death'});
-        columns.push({title: 'New deaths', data: 'amountDeathNew', className: 'column-new-death'});
-        columns.push({title: 'Cases by 1 mio inhabitants', data: 'casesPerMillion', className: 'column', render: columnCallbackFixedNumber});
+        columns.push({title: 'Healed', data: 'amountHealed', className: 'column-healed', render: columnCallbackFixedZero});
+        columns.push({title: 'New healed', data: 'amountHealedNew', className: 'column-new-healed', render: columnCallbackFixedZero});
+        columns.push({title: 'Death', data: 'amountDeath', className: 'column-death', render: columnCallbackFixedZero});
+        columns.push({title: 'New deaths', data: 'amountDeathNew', className: 'column-new-death', render: columnCallbackFixedZero});
+        columns.push({title: 'Cases by 100,000 inhabitants', data: 'casesPerMillion', className: 'column', render: columnCallbackFixedTwo});
         // @ts-ignore
         this._tableOptions['columns'] = columns;
     }

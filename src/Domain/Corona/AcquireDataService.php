@@ -27,7 +27,7 @@ use function strpos;
  *
  * @package App\Domain\Corona
  */
-class AquireDataService
+class AcquireDataService
 {
     /** @var \Doctrine\ORM\EntityManagerInterface */
     private $entityManager;

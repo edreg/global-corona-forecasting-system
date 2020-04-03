@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Domain\Corona\AquireDataService;
+use App\Domain\Corona\AcquireDataService;
 use App\Form\UploadCoronaStatsType;
 use App\Repository\CoronaStatsRepository;
 use Knp\Component\Pager\PaginatorInterface;
@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class MapController extends AbstractController
 {
     /**
-     * @var \App\Domain\Corona\AquireDataService
+     * @var \App\Domain\Corona\AcquireDataService
      */
     private $dataService;
 
@@ -31,7 +31,7 @@ class MapController extends AbstractController
      */
     private $logger;
 
-    public function __construct(AquireDataService $dataService, LoggerInterface $logger)
+    public function __construct(AcquireDataService $dataService, LoggerInterface $logger)
     {
         $this->dataService = $dataService;
         $this->logger = $logger;
