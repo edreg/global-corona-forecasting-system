@@ -371,8 +371,8 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 data: legendData,
                 selected: this._selectedChartLegend,
                 orient: 'vertical',
-                itemGap: 10,
-                itemHeight: 20,
+                itemGap: 15,
+                itemHeight: 40,
                 textStyle: {
                     color: '#801117',
                     fontSize: 20

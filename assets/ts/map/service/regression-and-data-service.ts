@@ -115,12 +115,12 @@ export class RegressionAndDataService {
     constructor(dataResponseInterface: CoronaChartResponseInterface) {
         this._dataResponseInterface = dataResponseInterface;
         this._xAxisAssignment = {};
-        this._regressionFactor = 4;
+        this._regressionFactor = 3;
         this._dataRowCount = 0;
-        this._regressionCorrection = 1.002;
+        this._regressionCorrection = 1.0005;
         this._triggerRegressionRecalculation = true;
         this._regressionFormulaByName = {};
-        this._forecastInDays = 7;
+        this._forecastInDays = 14;
         this._geoCoordMap = {};
         this._statsPerCountry = {};
         this._chartDateList = {};
@@ -639,10 +639,10 @@ export class RegressionAndDataService {
                 stat.amountDeathTheDayBefore = statDayBefore.amountDeath;
 
                 stat.amountInfected = Math.max(stat.amountTotal - stat.amountHealed - stat.amountDeath, 0);
-                // if (stat.amountInfected == 0) {
-                //     stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed, Math.floor(statDayBefore.amountDeath * this._regressionCorrection), 0);
-                //     stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath, Math.floor(statDayBefore.amountHealed * this._regressionCorrection), 0);
-                // }
+                if (stat.amountInfected == 0) {
+                    stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed, Math.floor(statDayBefore.amountDeath * this._regressionCorrection), 0);
+                    stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath, Math.floor(statDayBefore.amountHealed * this._regressionCorrection), 0);
+                }
                 // stat.amountHealed = Math.max(stat.amountHealed, Math.floor(statDayBefore.amountHealed * this._regressionCorrection));
                 // stat.amountDeath = Math.max(stat.amountDeath, Math.floor(statDayBefore.amountDeath * this._regressionCorrection));
 
@@ -654,12 +654,7 @@ export class RegressionAndDataService {
                 //     stat.amountDeath = Math.max(Math.min(stat.amountTotal - stat.amountHealed, stat.amountTotal), 0);
                 // }
 
-                //stat.amountInfected = Math.max(stat.amountTotal - stat.amountHealed - stat.amountDeath, 0);
-                // if (stat.amountInfected <= 0) {
-                //     stat.amountInfected = 0;
-                //     stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed, Math.floor(statDayBefore.amountDeath * this._regressionCorrection), 0);
-                //     stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath, Math.floor(statDayBefore.amountHealed * this._regressionCorrection), 0);
-                // }
+
 
                 stat = this.buildDoublingRates(stat);
 
