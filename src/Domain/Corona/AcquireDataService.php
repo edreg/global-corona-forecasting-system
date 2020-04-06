@@ -302,7 +302,7 @@ class AcquireDataService
             'Korea, South'               => 'South Korea',
             'Timor-Leste'                => 'East Timor',
             'Burma'                      => 'Myanmar [Burma]',
-            'Unites States'              => 'US',
+            'United States'              => 'US',
             'USA'                        => 'US',
             'UK'                         => 'United Kingdom',
             'Taiwan*'                    => 'Taiwan',
