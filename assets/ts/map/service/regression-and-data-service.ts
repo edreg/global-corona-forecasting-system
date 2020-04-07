@@ -608,16 +608,8 @@ export class RegressionAndDataService {
         });
         $.each(this._regressionModelList, (countryId, countryData: Array<CoronaStatInterface>) => {
             if (countryId != 0) {
-
-
+                this.sanitizeValues(countryId);
                 for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
-                    let stat: CoronaStatInterface = countryData[i];
-                    let statDayBefore: CoronaStatInterface = countryData[i - 1];
-                    stat.amountTotalTheDayBefore = statDayBefore.amountTotal;
-                    stat.amountInfectedTheDayBefore = statDayBefore.amountInfected;
-                    stat.amountHealedTheDayBefore = statDayBefore.amountHealed;
-                    stat.amountDeathTheDayBefore = statDayBefore.amountDeath;
-
 
                     this._regressionModelList[0][i].amountTotal += countryData[i].amountTotal || 0;
                     this._regressionModelList[0][i].amountInfected += countryData[i].amountInfected || 0;
@@ -628,7 +620,7 @@ export class RegressionAndDataService {
                     this._regressionModelList[0][i].amountHealedTheDayBefore += countryData[i].amountHealedTheDayBefore || 0;
                     this._regressionModelList[0][i].amountDeathTheDayBefore += countryData[i].amountDeathTheDayBefore || 0;
                 }
-                this.sanitizeValues(countryId);
+
             }
         });
         for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
@@ -655,6 +647,10 @@ export class RegressionAndDataService {
             if (typeof this._regressionModelList[countryId][i - 1] !== 'undefined') {
                 let stat: CoronaStatInterface = this._regressionModelList[countryId][i];
                 let statDayBefore: CoronaStatInterface = this._regressionModelList[countryId][i - 1];
+                stat.amountTotalTheDayBefore = statDayBefore.amountTotal;
+                stat.amountInfectedTheDayBefore = statDayBefore.amountInfected;
+                stat.amountHealedTheDayBefore = statDayBefore.amountHealed;
+                stat.amountDeathTheDayBefore = statDayBefore.amountDeath;
 
                 if (stat.amountTotalTheDayBefore == 0)
                 {

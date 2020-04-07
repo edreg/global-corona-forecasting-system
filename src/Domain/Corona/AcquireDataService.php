@@ -317,8 +317,9 @@ class AcquireDataService
             'Republic of Ireland'            => 'Ireland',
             'Republic of Moldova'            => 'Moldova',
             'occupied Palestinian territory' => 'West Bank and Gaza',
-            'Macao SAR' => 'Macao',
-            'Guernsey' => 'Channel Islands',
+            'Macau'                          => 'Macao',
+            'Macao SAR'                      => 'Macao',
+            'Guernsey'                       => 'Channel Islands',
         ];
     }
 }
