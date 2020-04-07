@@ -1,6 +1,7 @@
 import {CoronaChartResponseInterface} from "../interface/corona-chart-response-interface";
 import * as $ from "jquery";
 import {SeriesGeoInterface} from "../interface/series-geo-interface";
+import {CoronaStatInterface} from "../interface/corona-stat-interface";
 
 enum RegressionType {
     linear = 'linear',
@@ -132,6 +133,7 @@ export class GeoMapService
                             + 'doubling healed rate: <strong>' + parseFloat(stats.doublingHealedRate).toFixed(1) + '</strong>' + '<br>'
                             + 'doubling death rate: <strong>' + parseFloat(stats.doublingDeathRate).toFixed(1) + '</strong>' + '<br>'
                             + 'mortality: <strong>' + parseFloat(mortality.toString()).toFixed(1) + '%</strong>' + '<br>'
+                            + 'new cases (%): <strong>' + parseFloat((CoronaStatInterface.getPercentageValueToDayBefore(stats.amountTotal, stats.amountTotalTheDayBefore)).toString()).toFixed(2) + '%</strong>' + '<br>'
                         ;
                     }
 

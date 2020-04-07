@@ -22,6 +22,7 @@ export class RegressionAndDataService {
     private _dataResponseInterface: CoronaChartResponseInterface;
     private _forecastInDays: number;
     private _regressionFactor: number;
+    private _regressionTotalFactor: number;
     private _regressionFormulaByName: {};
     private _xAxisAssignment: {};
     private _lastDate;
@@ -116,6 +117,7 @@ export class RegressionAndDataService {
         this._dataResponseInterface = dataResponseInterface;
         this._xAxisAssignment = {};
         this._regressionFactor = 3;
+        this._regressionTotalFactor = 5;
         this._dataRowCount = 0;
         this._regressionCorrection = 1.0005;
         this._triggerRegressionRecalculation = true;
@@ -220,6 +222,7 @@ export class RegressionAndDataService {
         let mortalityCasesRate = 0;
         let lastAmountCasesGeoData = [];
         let lastAmountInfectedGeoData = [];
+        let lastAmountNewRelativeCasesGeoData = [];
         let lastAmountHealedGeoData = [];
         let lastAmountDeathGeoData = [];
         let lastAmountCasesNewGeoData = [];
@@ -307,6 +310,11 @@ export class RegressionAndDataService {
 
             lastAmountCasesGeoData.push({name: stat.country.name, value: stat.amountTotal, stat: stat});
             lastAmountInfectedGeoData.push({name: stat.country.name, value: stat.amountInfected, stat: stat});
+            lastAmountNewRelativeCasesGeoData.push({
+                name: stat.country.name,
+                value: CoronaStatInterface.getPercentageValueToDayBefore(stat.amountTotal, stat.amountTotalTheDayBefore),
+                stat: stat
+            });
             lastAmountHealedGeoData.push({name: stat.country.name, value: stat.amountHealed, stat: stat});
             lastAmountDeathGeoData.push({name: stat.country.name, value: stat.amountDeath, stat: stat});
             lastAmountCasesNewGeoData.push({name: stat.country.name, value: newCases, stat: stat});
@@ -335,6 +343,14 @@ export class RegressionAndDataService {
             color: '#ffce1b',
             regressionType: RegressionType.polynomial,
             selected: false
+        });
+        this._seriesGeoModelList.push({
+            name: 'new cases (%)',
+            data: lastAmountNewRelativeCasesGeoData,
+            relativeAmount: 100,
+            color: '#112aff',
+            regressionType: RegressionType.polynomial,
+            selected: true
         });
         this._seriesGeoModelList.push({
             name: 'infected',
@@ -534,6 +550,15 @@ export class RegressionAndDataService {
 
                 regression = ecStat.regression('polynomial', regressionData, this._regressionFactor);
 
+                // if (name == "amountTotal")
+                // {
+                //     regression = ecStat.regression('polynomial', regressionData, this._regressionTotalFactor);
+                // }
+                // else
+                // {
+                //     regression = ecStat.regression('polynomial', regressionData, this._regressionFactor);
+                // }
+
                 this._regressionFormulaByName[name + '|' + exampleStat.country.name] = regression.expression;
 
                 let formula = this.getRegressionFormula(regression);
@@ -583,8 +608,17 @@ export class RegressionAndDataService {
         });
         $.each(this._regressionModelList, (countryId, countryData: Array<CoronaStatInterface>) => {
             if (countryId != 0) {
-                this.sanitizeValues(countryId);
+
+
                 for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
+                    let stat: CoronaStatInterface = countryData[i];
+                    let statDayBefore: CoronaStatInterface = countryData[i - 1];
+                    stat.amountTotalTheDayBefore = statDayBefore.amountTotal;
+                    stat.amountInfectedTheDayBefore = statDayBefore.amountInfected;
+                    stat.amountHealedTheDayBefore = statDayBefore.amountHealed;
+                    stat.amountDeathTheDayBefore = statDayBefore.amountDeath;
+
+
                     this._regressionModelList[0][i].amountTotal += countryData[i].amountTotal || 0;
                     this._regressionModelList[0][i].amountInfected += countryData[i].amountInfected || 0;
                     this._regressionModelList[0][i].amountHealed += countryData[i].amountHealed || 0;
@@ -594,12 +628,13 @@ export class RegressionAndDataService {
                     this._regressionModelList[0][i].amountHealedTheDayBefore += countryData[i].amountHealedTheDayBefore || 0;
                     this._regressionModelList[0][i].amountDeathTheDayBefore += countryData[i].amountDeathTheDayBefore || 0;
                 }
+                this.sanitizeValues(countryId);
             }
         });
         for (let i = this._xAxisAssignment[this._lastDate] + 1; i < (this._xAxisAssignment[this._lastDate] + this.forecastInDays + 1); i++) {
             this._regressionModelList[0][i] = this.buildDoublingRates(this._regressionModelList[0][i]);
         }
-        //this.sanitizeValues(0);
+
         // console.log(this._regressionFormulaByName['amountDeath|Germany']);
         // console.log(this._regressionModelList[0]);
         // console.log(this._regressionModelList[755]);
@@ -607,25 +642,12 @@ export class RegressionAndDataService {
 
     buildDoublingRates(stat: CoronaStatInterface) : CoronaStatInterface {
 
-        stat.doublingTotalRate = this.getDoublingRate(stat.amountTotal, stat.amountTotalTheDayBefore);
-        stat.doublingInfectionRate = this.getDoublingRate(stat.amountInfected, stat.amountInfectedTheDayBefore);
-        stat.doublingHealedRate = this.getDoublingRate(stat.amountHealed, stat.amountHealedTheDayBefore);
-        stat.doublingDeathRate = this.getDoublingRate(stat.amountDeath, stat.amountDeathTheDayBefore);
+        stat.doublingTotalRate = CoronaStatInterface.getDoublingRate(stat.amountTotal, stat.amountTotalTheDayBefore);
+        stat.doublingInfectionRate = CoronaStatInterface.getDoublingRate(stat.amountInfected, stat.amountInfectedTheDayBefore);
+        stat.doublingHealedRate = CoronaStatInterface.getDoublingRate(stat.amountHealed, stat.amountHealedTheDayBefore);
+        stat.doublingDeathRate = CoronaStatInterface.getDoublingRate(stat.amountDeath, stat.amountDeathTheDayBefore);
 
         return stat;
-    }
-
-    getDoublingRate(value: number, valueTheDayBefore: number): number {
-        let doublingRate = 0;
-
-        if (valueTheDayBefore > 0 && value > 0) {
-            let log = Math.log(value / valueTheDayBefore);
-            if (log !== 0) {
-                doublingRate = Math.log(2) / log;
-            }
-        }
-
-        return doublingRate;
     }
 
     sanitizeValues(countryId: number) {
@@ -633,28 +655,27 @@ export class RegressionAndDataService {
             if (typeof this._regressionModelList[countryId][i - 1] !== 'undefined') {
                 let stat: CoronaStatInterface = this._regressionModelList[countryId][i];
                 let statDayBefore: CoronaStatInterface = this._regressionModelList[countryId][i - 1];
-                stat.amountTotalTheDayBefore = statDayBefore.amountTotal;
-                stat.amountInfectedTheDayBefore = statDayBefore.amountInfected;
-                stat.amountHealedTheDayBefore = statDayBefore.amountHealed;
-                stat.amountDeathTheDayBefore = statDayBefore.amountDeath;
+
+                if (stat.amountTotalTheDayBefore == 0)
+                {
+                    continue;
+                }
 
                 stat.amountInfected = Math.max(stat.amountTotal - stat.amountHealed - stat.amountDeath, 0);
-                if (stat.amountInfected == 0) {
+                if (stat.amountInfected == 0 && stat.amountTotal != 0) {
                     stat.amountDeath = Math.max(stat.amountTotal - stat.amountHealed, Math.floor(statDayBefore.amountDeath * this._regressionCorrection), 0);
                     stat.amountHealed = Math.max(stat.amountTotal - stat.amountDeath, Math.floor(statDayBefore.amountHealed * this._regressionCorrection), 0);
                 }
-                // stat.amountHealed = Math.max(stat.amountHealed, Math.floor(statDayBefore.amountHealed * this._regressionCorrection));
-                // stat.amountDeath = Math.max(stat.amountDeath, Math.floor(statDayBefore.amountDeath * this._regressionCorrection));
+                stat.amountHealed = Math.max(stat.amountHealed, Math.floor(statDayBefore.amountHealed * this._regressionCorrection), 0);
+                stat.amountDeath = Math.max(stat.amountDeath, Math.floor(statDayBefore.amountDeath * this._regressionCorrection), 0);
 
-                // if (stat.amountHealed > stat.amountTotal) {
-                //     stat.amountHealed = Math.max(Math.min(stat.amountTotal - stat.amountDeath, stat.amountTotal), 0);
-                // }
-                //
-                // if (stat.amountDeath > stat.amountTotal) {
-                //     stat.amountDeath = Math.max(Math.min(stat.amountTotal - stat.amountHealed, stat.amountTotal), 0);
-                // }
+                if (stat.amountHealed > stat.amountTotal) {
+                    stat.amountHealed = Math.max(Math.min(stat.amountTotal - stat.amountDeath, stat.amountTotal), 0);
+                }
 
-
+                if (stat.amountDeath > stat.amountTotal) {
+                    stat.amountDeath = Math.max(Math.min(stat.amountTotal - stat.amountHealed, stat.amountTotal), 0);
+                }
 
                 stat = this.buildDoublingRates(stat);
 
