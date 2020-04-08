@@ -1,7 +1,7 @@
 export interface SeriesChartInterface {
-    selected: boolean;
+    formula: string;
     countryName: string;
     data: Array<any>;
     name: string;
-    regressionFormulaKey: string;
+    regressionFormulaKey?: string;
 }

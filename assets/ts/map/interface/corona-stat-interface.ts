@@ -23,7 +23,11 @@ export class CoronaStatInterface {
 
     static getPercentageValueToDayBefore(value: number, valueTheDayBefore: number)
     {
-        return Math.min(100, (100 * (value - valueTheDayBefore) / Math.max(1, value)));
+        if (value == 0)
+        {
+            return 0;
+        }
+        return Math.min(100, (100 * (value - valueTheDayBefore) / value));
     }
 
     static getDoublingRate(value: number, valueTheDayBefore: number): number {

@@ -282,19 +282,21 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         {
             let doublingCasesRate = [];
             let amountCases = [];
-            let amountInfected = [];
-            let amountHealed = [];
-            let amountDied = [];
             let amountCasesNew = [];
+            let amountCasesNewPercent = [];
+            let amountInfected = [];
+            let amountInfectedNew = [];
+            let amountInfectedNewPercent = [];
+            let amountHealed = [];
             let amountHealedNew = [];
+            let amountHealedNewPercent = [];
+            let amountDied = [];
             let amountDiedNew = [];
-            let amountCasesGeoDataPopulation = [];
-            let amountInfectedGeoDataPopulation = [];
-            let amountHealedGeoDataPopulation = [];
-            let amountDeathGeoDataPopulation = [];
+            let amountDiedNewPercent = [];
+
             let amountMortality = [];
             let country: CountryInterface = this._dataService.countryById[countryId];
-            let perPopulation = (country.population) || 1;
+
             chartNameList.push(country.name);
 
             $.each(this._dataService.regressionModelList[countryId], (key:number, stat:CoronaStatInterface) => {
@@ -302,37 +304,49 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 {
                     amountCases.push(stat.amountTotal);
                     amountCasesNew.push(stat.amountTotal - stat.amountTotalTheDayBefore);
+                    amountCasesNewPercent.push(CoronaStatInterface.getPercentageValueToDayBefore(stat.amountTotal, stat.amountTotalTheDayBefore));
+
+                    amountHealed.push(stat.amountHealed);
+                    amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
+                    amountHealedNewPercent.push(CoronaStatInterface.getPercentageValueToDayBefore(stat.amountHealed, stat.amountHealedTheDayBefore));
+
                     amountInfected.push(stat.amountInfected);
+                    amountInfectedNew.push(stat.amountInfected - stat.amountInfectedTheDayBefore);
+                    amountInfectedNewPercent.push(CoronaStatInterface.getPercentageValueToDayBefore(stat.amountInfected, stat.amountInfectedTheDayBefore));
+
+                    amountDied.push(stat.amountDeath);
+                    amountDiedNew.push(stat.amountDeath - stat.amountDeathTheDayBefore);
+                    amountDiedNewPercent.push(CoronaStatInterface.getPercentageValueToDayBefore(stat.amountDeath, stat.amountDeathTheDayBefore));
                     //amountInfected.push(stat.amountTotal - stat.amountHealed - stat.amountDeath);
                     amountMortality.push(Math.min((stat.amountTotal > 0 ? 100 * (stat.amountDeath / stat.amountTotal) : 0), 100));
                     doublingCasesRate.push(stat.doublingTotalRate);
-                    amountHealed.push(stat.amountHealed);
-                    amountHealedNew.push(stat.amountHealed - stat.amountHealedTheDayBefore);
-                    amountDied.push(stat.amountDeath);
-                    amountDiedNew.push(stat.amountDeath - stat.amountDeathTheDayBefore);
-                    amountCasesGeoDataPopulation.push(stat.amountTotal / perPopulation);
-                    amountInfectedGeoDataPopulation.push(stat.amountInfected / perPopulation);
-                    amountHealedGeoDataPopulation.push(stat.amountHealed / perPopulation);
-                    amountDeathGeoDataPopulation.push(stat.amountDeath / perPopulation);
+
                 }
             });
 
-            this._seriesChartModelList.push({selected: true, countryName: country.name, data: amountCases, name: 'total', regressionFormulaKey: 'amountTotal|' + country.name,});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountCasesNew, name: 'new cases', regressionFormulaKey: '|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountInfected, name: 'active cases', regressionFormulaKey: 'amountInfected|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountMortality, name: 'mortality', regressionFormulaKey: '|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: doublingCasesRate, name: 'doubling cases rate', regressionFormulaKey: 'doublingTotalRate|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountHealed, name: 'healed', regressionFormulaKey: 'mountHealed|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountHealedNew, name: 'new healed', regressionFormulaKey: '|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountDied, name: 'died', regressionFormulaKey: 'amountDeath|' + country.name});
-            this._seriesChartModelList.push({selected: false, countryName: country.name, data: amountDiedNew, name: 'new died', regressionFormulaKey: '|' + country.name});
+            this._seriesChartModelList.push({formula: 'cases', countryName: country.name, data: amountCases, name: 'cases', regressionFormulaKey: 'amountTotal|' + country.name,});
+            this._seriesChartModelList.push({formula: 'y = cases - healed - died', countryName: country.name, data: amountInfected, name: 'active cases', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'healed', countryName: country.name, data: amountHealed, name: 'healed', regressionFormulaKey: 'amountHealed|' + country.name});
+            this._seriesChartModelList.push({formula: 'died', countryName: country.name, data: amountDied, name: 'died', regressionFormulaKey: 'amountDeath|' + country.name});
+            this._seriesChartModelList.push({formula: 'y = cases - (cases_the_day_before)', countryName: country.name, data: amountCasesNew, name: 'new cases', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = active cases - (active_cases_the_day_before)', countryName: country.name, data: amountInfectedNew, name: 'new active cases', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = healed - (healed_the_day_before)', countryName: country.name, data: amountHealedNew, name: 'new healed', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = died - (died_the_day_before)', countryName: country.name, data: amountDiedNew, name: 'new died', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = 100 * (new_cases - new_cases_the_day_before) / new_cases', countryName: country.name, data: amountCasesNewPercent, name: 'new cases (%)', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = 100 * (new_active_cases - new_active_cases_the_day_before) / new_active_cases', countryName: country.name, data: amountInfectedNewPercent, name: 'new active cases (%)', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = 100 * (new_healed_cases - new_healed_cases_the_day_before) / new_healed_cases', countryName: country.name, data: amountHealedNewPercent, name: 'new healed (%)', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = 100 * (new_died_cases - new_died_cases_the_day_before) / new_died_cases', countryName: country.name, data: amountDiedNewPercent, name: 'new died (%)', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = 100 * died / cases', countryName: country.name, data: amountMortality, name: 'mortality', regressionFormulaKey: null});
+            this._seriesChartModelList.push({formula: 'y = ln(2) / ln(cases/cases_the_day_before)', countryName: country.name, data: doublingCasesRate, name: 'doubling cases rate', regressionFormulaKey: null});
 
             if (buildLegend)
             {
+                let selected = true;
                 for (let chartModel of this._seriesChartModelList)
                 {
                     legendData.push(chartModel.name);
-                    legendSelectedObject[chartModel.name] = chartModel.selected;
+                    legendSelectedObject[chartModel.name] = selected;
+                    selected = false;
                 }
                 buildLegend = false;
             }
@@ -368,6 +382,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                 left: '0%',
                 inactiveColor: '#9098ae',
                 //selectedMode: 'single',
+                type: 'scroll',
                 data: legendData,
                 selected: this._selectedChartLegend,
                 orient: 'vertical',
@@ -377,6 +392,12 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                     color: '#801117',
                     fontSize: 20
                 },
+                // tooltip: {
+                //     trigger: 'item',
+                //     formatter: (params) => {
+                //         console.log(params)
+                //     }
+                // }
             },
             tooltip: this.getTooltip(),
             grid: {
@@ -413,7 +434,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             yAxis: {
                 type: 'value',
                 name: 'amount',
-                min: 0,
+                //min: 0,
             },
             series: series
         };
@@ -421,12 +442,15 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     private buildDataSeries(chartModel: SeriesChartInterface) {
         let regressionData = chartModel.data;
-        let formula = chartModel.countryName;
+        let formula = chartModel.formula;
+
         //console.log(chartModel.regressionFormulaKey);
         if (typeof this._dataService.regressionFormulaByName[chartModel.regressionFormulaKey] !== 'undefined')
         {
-            formula = this._dataService.regressionFormulaByName[chartModel.regressionFormulaKey] + ' ' + chartModel.countryName;
+            formula = this._dataService.regressionFormulaByName[chartModel.regressionFormulaKey];
         }
+
+        formula +=  ' ' + chartModel.countryName;
 
         return {
             name: chartModel.name,
@@ -435,27 +459,7 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             //stack: chartModel.countryName,
             smooth: true,
             data: regressionData,
-            markLine: {
-                label: {
-                    show: true,
-                    position: 'middle',
-                    formatter: formula,
-                    textStyle: {
-                        color: '#333',
-                        fontSize: 14
-                    }
-                },
-                data: [
-                    [
-                        {
-                            coord: [0, regressionData[0]]
-                        },
-                        {
-                            coord: [regressionData.length - 1, regressionData[regressionData.length - 1]]
-                        }
-                    ]
-                ]
-            },
+            markLine: this.getMarkLine(formula, regressionData),
             markArea: {
                 itemStyle: {
                     borderWidth: 1,
@@ -469,7 +473,6 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
                         {
                             name: "trend",
                             xAxis: this._dataService.getLastRealDateDataPosition(),
-                            //xAxis: this._dataService.xAxisAssignment[this._dataService.lastDate]
                         },
                         {
                             xAxis: regressionData.length - 1
@@ -503,6 +506,30 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
                 }]
             },
+        };
+    }
+
+    getMarkLine(formula: string, regressionData: Array<any>) {
+        return {
+            label: {
+                show: true,
+                position: 'middle',
+                formatter: formula,
+                textStyle: {
+                    color: '#333',
+                    fontSize: 14
+                }
+            },
+            data: [
+                [
+                    {
+                        coord: [0, regressionData[0]]
+                    },
+                    {
+                        coord: [regressionData.length - 1, regressionData[regressionData.length - 1]]
+                    }
+                ]
+            ]
         };
     }
 
