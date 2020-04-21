@@ -19,6 +19,7 @@ enum RegressionFormulaBehavingType
 }
 
 export class RegressionAndDataService {
+
     private _dataResponseInterface: CoronaChartResponseInterface;
     private _forecastInDays: number;
     private _regressionFactor: number;
@@ -40,6 +41,7 @@ export class RegressionAndDataService {
     private _regressionModelList: {};
     private _triggerRegressionRecalculation: boolean;
     private _regressionCorrection: number;
+    private _amountOfDaysToBuildRegression: number;
 
     get regressionModelList(): {} {
         return this._regressionModelList;
@@ -113,6 +115,14 @@ export class RegressionAndDataService {
         this._triggerRegressionRecalculation = value;
     }
 
+    get amountOfDaysToBuildRegression(): number {
+        return this._amountOfDaysToBuildRegression;
+    }
+
+    set amountOfDaysToBuildRegression(value: number) {
+        this._amountOfDaysToBuildRegression = value;
+    }
+
     constructor(dataResponseInterface: CoronaChartResponseInterface) {
         this._dataResponseInterface = dataResponseInterface;
         this._xAxisAssignment = {};
@@ -123,6 +133,7 @@ export class RegressionAndDataService {
         this._triggerRegressionRecalculation = true;
         this._regressionFormulaByName = {};
         this._forecastInDays = 14;
+        this._amountOfDaysToBuildRegression = 30;
         this._geoCoordMap = {};
         this._statsPerCountry = {};
         this._chartDateList = {};
@@ -543,9 +554,9 @@ export class RegressionAndDataService {
                     }
                 }
 
-                if (regressionData.length > 32)
+                if (regressionData.length > this._amountOfDaysToBuildRegression + 1)
                 {
-                    regressionData = regressionData.slice(regressionData.length - 31, regressionData.length);
+                    regressionData = regressionData.slice(regressionData.length - this._amountOfDaysToBuildRegression, regressionData.length);
                 }
 
                 regression = ecStat.regression('polynomial', regressionData, this._regressionFactor);

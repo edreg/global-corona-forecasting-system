@@ -227,7 +227,14 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
 
     buildAdvancedRangeConfig()
     {
+        let rangeValueSpan = $('#polynomial-coefficients-value');
+        let forecastDaysSpan = $('#forecast-days-value');
+        let buildRegressionDaysSpan = $('#amount-days-build-regression-value');
         let rangeControl = $('input#polynomial-coefficients-range-control');
+        rangeControl.on("input", (event) => {
+            let val = parseInt($(event.target).val().toString());
+            rangeValueSpan.text(val);
+        });
         rangeControl.on("change", (event) => {
             LoadingLayerHelper.show();
             let val = $(event.target).val();
@@ -238,6 +245,10 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
         }).val(this._dataService.regressionFactor);
 
         let forecastControl = $('input#forecast-days-range-control');
+        forecastControl.on("input", (event) => {
+            let val = parseInt($(event.target).val().toString());
+            forecastDaysSpan.text(val);
+        });
         forecastControl.on("change", (event) => {
             LoadingLayerHelper.show();
             let val = $(event.target).val();
@@ -247,6 +258,21 @@ export class CoronaChart implements InitializableInterface, DestroyableInterface
             this.rebuildCharts();
             LoadingLayerHelper.hide();
         }).val(this._dataService.forecastInDays);
+
+        let regressionDaysControl = $('input#amount-days-build-regression-range-control');
+        regressionDaysControl.on("input", (event) => {
+            let val = parseInt($(event.target).val().toString());
+            buildRegressionDaysSpan.text(val);
+        });
+        regressionDaysControl.on("change", (event) => {
+            LoadingLayerHelper.show();
+            let val = $(event.target).val();
+            this._dataService.amountOfDaysToBuildRegression = (parseInt(val.toString()));
+            this.buildDateRangeConfigs();
+            this._dataService.triggerRegressionRecalculation = true;
+            this.rebuildCharts();
+            LoadingLayerHelper.hide();
+        }).val(this._dataService.amountOfDaysToBuildRegression);
     }
 
     buildCountryConfig(): void {

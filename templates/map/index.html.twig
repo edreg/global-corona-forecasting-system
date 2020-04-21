@@ -155,8 +155,8 @@
             <div role="tabpanel" class="tab-pane" id="tabs-config">
                 <div class="spacer"></div>
                 <div class="row">
-                    <div class="text-center col-md-6">
-                        <label for="polynomial-coefficients-range-control">{{ '# of polynomial regression coefficients'|trans }}</label>
+                    <div class="col-md-6">
+                        <label for="polynomial-coefficients-range-control">{{ '# of polynomial regression coefficients'|trans }} <span id="polynomial-coefficients-value" class="range-value"></span></label>
                         <input id="polynomial-coefficients-range-control" class="custom-range border-0" type="range" min="3" max="9"/>
                     </div>
                     <div class="col-md-6">
@@ -166,8 +166,18 @@
                 <div class="spacer"></div>
                 <div class="row">
                     <div class="col-md-6">
-                        <label for="forecast-days-range-control">{{ 'Forecast in days'|trans }}</label>
+                        <label for="forecast-days-range-control">{{ 'Forecast in days'|trans }} <span id="forecast-days-value" class="range-value"></span></label>
                         <input id="forecast-days-range-control" class="custom-range border-0" type="range" min="2" max="60"/>
+                    </div>
+                    <div class="col-md-6">
+
+                    </div>
+                </div>
+                <div class="spacer"></div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="amount-days-build-regression-range-control">{{ 'Amount of days to build regression'|trans }} <span id="amount-days-build-regression-value" class="range-value"></span></label>
+                        <input id="amount-days-build-regression-range-control" class="custom-range border-0" type="range" min="7" max="60"/>
                     </div>
                     <div class="col-md-6">
 
