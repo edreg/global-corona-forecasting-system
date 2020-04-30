@@ -21,7 +21,7 @@
     "echarts": "^4.6.0",
     "echarts-gl": "^1.1.1",
     "echarts-stat": "^1.1.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "jquery-ui": "^1.12.1",
     "jquery-ui-dist": "^1.12.1",
     "node-sass": "^4.13.1",
