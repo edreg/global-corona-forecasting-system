@@ -22,7 +22,7 @@
     "echarts-gl": "^1.1.1",
     "echarts-stat": "^1.1.1",
     "jquery": "^3.4.1",
-    "jquery-ui": "^1.12.1",
+    "jquery-ui": "^1.13.0",
     "jquery-ui-dist": "^1.12.1",
     "node-sass": "^4.13.1",
     "popper.js": "^1.16.1",
